@@ -2,7 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"os"
+	"strings"
+
 	"github.com/beevik/etree"
 	"github.com/mihakralj/opnsense/internal"
 	"github.com/spf13/cobra"
@@ -16,13 +17,16 @@ examples and usage of using your command. For example:
 
 Cobra is a CLI library for Go that empowers applications.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) < 1 {
-			fmt.Println("Please provide a path as a command-line argument.")
-			os.Exit(1)
+		path := "opnsense"
+		if len(args) >= 1 {
+			trimmedArg := strings.Trim(args[0], "/")
+			if trimmedArg != "" {
+				path = trimmedArg
+			}
 		}
-		path := args[0]
-
-		output, err := internal.ExecuteCmd("cat /conf/config.xml", internal.SSHTarget)
+		internal.Checkos()
+		bash := "cat /conf/config.xml"
+		output, err := internal.ExecuteCmd(bash, host)
 		if err != nil {
 			panic(err)
 		}
@@ -32,7 +36,7 @@ Cobra is a CLI library for Go that empowers applications.`,
 			panic(err)
 		}
 
-		focused := internal.FocusTree(doc.Root(), path, false)
+		focused := internal.FocusTree(doc.Root(), path, 1)
 
 		fmt.Println(internal.EtreeToYaml(focused, 0))
 	},

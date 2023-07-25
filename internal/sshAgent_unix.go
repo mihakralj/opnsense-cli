@@ -1,4 +1,6 @@
+//go:build !windows
 // +build !windows
+
 package internal
 
 import (
@@ -26,4 +28,12 @@ func GetSSHAgent() (ssh.AuthMethod, error) {
     }
 
     return ssh.PublicKeysCallback(agentClient.Signers), nil
+}
+
+func createAgentClient() (agent.Agent, error) {
+        sshAgent, err := net.Dial("unix", os.Getenv("SSH_AUTH_SOCK"))
+        if err != nil {
+            return nil, err
+        }
+        return agent.NewClient(sshAgent), nil
 }

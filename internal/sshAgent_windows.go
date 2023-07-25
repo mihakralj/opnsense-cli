@@ -1,4 +1,6 @@
+//go:build windows
 // +build windows
+
 package internal
 
 import (
@@ -25,4 +27,12 @@ func GetSSHAgent() (ssh.AuthMethod, error) {
     }
 
     return ssh.PublicKeysCallback(agentClient.Signers), nil
+}
+
+func createAgentClient() (agent.Agent, error) {
+    conn, err := winio.DialPipe(`\\.\pipe\openssh-ssh-agent`, nil)
+    if err != nil {
+        return nil, err
+    }
+    return agent.NewClient(conn), nil
 }

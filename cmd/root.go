@@ -3,41 +3,26 @@ package cmd
 import (
 	"fmt"
 	"os"
-    "strings"
+
+	"github.com/mihakralj/opnsense/internal"
 	"github.com/spf13/cobra"
-    "github.com/mihakralj/opnsense/internal"
 )
 
 var (
-	user      string
-	host      string
-	port      string
+	verbose int
+	host string
+	configfile string
 )
 
 func init() {
-	cobra.OnInitialize(func() {
-        internal.SetSSHTarget(user, host, port)
-        
-        //check that the target is OPNsense
-        osstr, _ := internal.ExecuteCmd("uname", internal.SSHTarget)
-        osstr = strings.TrimSpace(osstr)
-        if osstr != "FreeBSD" {
-            fmt.Println("The target system is not FreeBSD")
-            os.Exit(1)
-        }
-        opn, _ := internal.ExecuteCmd("opnsense-version -N", internal.SSHTarget)
-        opn = strings.TrimSpace(opn)
-        if opn != "OPNsense" {
-            fmt.Println("The target system is not OPNsense")
-            os.Exit(1)
-        }
-        fmt.Println(osstr, opn)
+	rootCmd.PersistentFlags().StringVarP(&host, "target", "t", "", "Target host (-t user@hostname[:port])")
+	rootCmd.PersistentFlags().StringVarP(&configfile, "config", "c", "/conf/config.xml", "path to target config.xml")
+	rootCmd.PersistentFlags().IntVarP(&verbose, "verbose", "v", 1, "Set verbosity level (1-5)")
 
-		//check that the target is OPNsense
+	cobra.OnInitialize(func() {
+		internal.SetFlags(verbose, host, configfile)
+		//other initializations
 	})
-	rootCmd.PersistentFlags().StringVarP(&host, "target", "t", "", "Target hostname for SSH")
-	rootCmd.PersistentFlags().StringVarP(&user, "user", "u", "admin", "Username for SSH")
-	rootCmd.PersistentFlags().StringVarP(&port, "port", "p", "22", "Port for SSH")
 
 }
 
@@ -47,8 +32,11 @@ var rootCmd = &cobra.Command{
 	Long: `opnsense is a super fancy CLI (kidding)
 
 One can use opnsense to inspect opnsense configuration straight from the terminal`,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-        fmt.Println("hello root command")
+
 	},
 }
 
