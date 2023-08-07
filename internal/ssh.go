@@ -52,8 +52,8 @@ func getSSHClient(target string) (*SSHClient, error) {
         }
 
         if len(config.Auth) == 0 {
-            fmt.Println("No identities found in the SSH agent. Falling back to password authentication.")
-            fmt.Printf("Enter Password for %s@%s: ", user, host)
+            fmt.Println("No suitable SSH identities found in ssh-agent.\nFor enhanced security add SSH key to the ssh agent")
+            fmt.Printf("Enter password for %s@%s: \n", user, host)
 			bytePassword, err := term.ReadPassword(int(syscall.Stdin))
             fmt.Println()
             if err != nil {
@@ -67,13 +67,12 @@ func getSSHClient(target string) (*SSHClient, error) {
 
 	connection, err := ssh.Dial("tcp", host+":"+port, config)
 	if err != nil {
-		fmt.Println("Failed to dial SSH server:", err)
-		return nil, fmt.Errorf("failed to dial: %v", err)
+		Log(1, "%v",err)
 	}
 
 	session, err := connection.NewSession()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create session: %v", err)
+		Log(1, "%v",err)
 	}
 
 	SshClient = &SSHClient{Session: session}

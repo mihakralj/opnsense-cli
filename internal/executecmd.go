@@ -29,7 +29,7 @@ func ExecuteCmd(command, host string) (string, error) {
 	var stdoutBuf bytes.Buffer
 	session.Stdout = &stdoutBuf
 
-	Log(3, "$ %s", command) //info level
+	Log(3, "%s", command) //info level
 
 	err = session.Run(command)
 
