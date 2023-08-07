@@ -1,0 +1,78 @@
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [windows, linux, darwin, freebsd]
+        goarch: [amd64]
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+          check-latest: true
+
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          go build -o ./bin/opnsense-${{ matrix.goos }}
+
+      - name: Upload all artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: opnsense-${{ matrix.goos }}
+          path: ./bin/*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: .
+
+      - name: rename Windows
+        run: mv ./opnsense-windows/opnsense-windows ./opnsense.exe
+
+      - name: rename Darwin
+        run: mv ./opnsense-darwin/opnsense-darwin ./opnsense-mac
+
+      - name: rename bsd
+        run: mv ./opnsense-freebsd/opnsense-freebsd ./opnsense-bsd
+
+      - name: rename Linux
+        run: mv ./opnsense-linux/opnsense-linux ./opnsense-lnx
+
+      - name: list files
+        run: ls -la .
+
+      - name: Create Release and Upload Assets
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          prerelease: true 
+          tag_name: ${{ github.run_id }}
+          name: Release ${{ github.run_id }}
+          files: |
+            ./opnsense-bsd
+            ./opnsense-mac
+            ./opnsense-lnx
+            ./opnsense.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

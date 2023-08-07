@@ -35,9 +35,9 @@ Cobra is a CLI library for Go that empowers applications.`,
 		if err != nil {
 			panic(err)
 		}
-		config_doc := etree.NewDocument()
-		config_doc.ReadFromString(config)
-		configtty := internal.ConfigToTTY(config_doc, path, depth)
+		configdoc := etree.NewDocument()
+		configdoc.ReadFromString(config)
+		configtty := internal.ConfigToTTY(configdoc, path, depth)
 		fmt.Println(configtty)
 	},
 }
