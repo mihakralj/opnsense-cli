@@ -1,0 +1,67 @@
+name: MacBSD
+
+on:
+    workflow_dispatch:
+
+jobs:
+  macbsd:
+    runs-on: macos-12
+    name: A job to run test in FreeBSD
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+
+    - name: Extract version from Makefile
+      id: extract_version
+      run: echo "VERSION=$(awk -F '=' '/^VERSION/ {print $2}' Makefile)" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Compile in FreeBSD
+      id: compile
+      uses: vmactions/freebsd-vm@v0.3.1
+      with:
+        envs: 'VERSION=${{ env.VERSION }}'
+        usesh: true
+        prepare: |
+          pkg install -y curl wget
+          name=$(curl -s https://go.dev/dl/ | grep 'freebsd-amd64' | sed -n 's/.*href="\([^"]*\)".*/\1/p' | head -n 1 | xargs basename)
+          wget -q "https://dl.google.com/go/$name"
+          tar -C /usr/local -xzf "$name"
+        run: |
+          mkdir ~/.gopkg
+          export GOPATH=/root/.gopkg
+          export PATH=$PATH:/usr/local/go/bin:/root/.gopkg/bin
+          mkdir -p /Users/runner/work/opnsense-cli/opnsense-cli/work-dir/usr/local/bin
+          go build -gcflags='-trimpath' -ldflags="-s -w -X cmd.Version=${VERSION}" -o /Users/runner/work/opnsense-cli/opnsense-cli/work-dir/usr/local/bin/opnsense opnsense.go
+          checksum=$(sha256 -q /Users/runner/work/opnsense-cli/opnsense-cli/work-dir/usr/local/bin/opnsense)
+          flatsize=$(stat -f%z /Users/runner/work/opnsense-cli/opnsense-cli/work-dir/usr/local/bin/opnsense)
+          echo "VERSION: ${VERSION}"
+          echo "CHECKSUM: ${checksum}"
+          echo "FLATSIZE: ${flatsize}"
+          echo "/usr/local/bin/opnsense: ${checksum}" > /Users/runner/work/opnsense-cli/opnsense-cli/sha256checksum
+          echo "/usr/local/bin/opnsense" > /Users/runner/work/opnsense-cli/opnsense-cli/plist
+          echo "name: opnsense" > /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "version: ${VERSION}" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "origin: net-mgmt/opnsense" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "comment: \"CLI to manage and monitor OPNsense firewall configuration, check status, change settings, and execute commands.\"" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "maintainer: \"miha.kralj@outlook.com\"" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "www: \"https://github.com/mihakralj/opnsense-cli\"" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "arch: freebsd:13:x86:64" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "prefix: /usr/local" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "flatsize: ${flatsize}" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "files: {" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "  \"/usr/local/bin/opnsense\": \"${checksum}\"" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "}" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          pkg create -M /Users/runner/work/opnsense-cli/opnsense-cli/manifest -p /Users/runner/work/opnsense-cli/opnsense-cli/plist -o /Users/runner/work/opnsense-cli/opnsense-cli
+          cat /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          ls -l /Users/runner/work/opnsense-cli/opnsense-cli/
+
+    - name: Check for pkg in the host
+      run:  ls -l /Users/runner/work/opnsense-cli/opnsense-cli/
+      shell: bash
+
+    - name: Upload all artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: opnsense.pkg
+        path: ./opnsense-*.pkg

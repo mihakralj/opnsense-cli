@@ -44,10 +44,10 @@ build: deps
 	@echo "Building..."
 ifeq ($(OS),Windows_NT)
 	@if not exist $(BUILD_DIR) mkdir $(BUILD_DIR)
-	@$(GO) build -ldflags "-X main.version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME).exe .
+	@$(GO) build -ldflags "-X cmd.version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME).exe .
 else
 	@mkdir -p $(BUILD_DIR)
-	@$(GO) build -ldflags "-X main.version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME) .
+	@$(GO) build -ldflags "-X cmd.version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME) .
 endif
 
 # Run tests

@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	version    = "0.1.0"
+	Version    string
 	verbose    int
 	force      bool
 	host       string
@@ -63,8 +63,4 @@ func Execute() {
 		fmt.Fprintf(os.Stderr, "Whoops. There was an error while executing CLI '%s'", err)
 		os.Exit(1)
 	}
-}
-
-func Version(ver string) {
-	version = ver
 }
