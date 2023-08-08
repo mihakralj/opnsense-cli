@@ -61,7 +61,6 @@ func EtreeToTTY(el *etree.Element, level int, indent int) string {
 	for _, token := range el.Child {
 		if comment, ok := token.(*etree.Comment); ok {
 			commentstr = fmt.Sprintf(c["red"]+" %s"+c["nil"], strings.TrimSpace(comment.Data))
-			//commentstr = fmt.Sprintf("# %s", strings.TrimSpace(comment.Data))
 		}
 	}
 	// attributes
@@ -69,14 +68,11 @@ func EtreeToTTY(el *etree.Element, level int, indent int) string {
 	for _, attr := range el.Attr {
 		attributestr = fmt.Sprintf(c["ita"]+c["blu"]+" (%s=\"%s\")"+c["nil"], attr.Key, attr.Value)
 	}
-
 	if len(el.ChildElements()) > 0 {
 		result.WriteString(fmt.Sprintf("%s%s: {", indentation, el.Tag))
 		result.WriteString(attributestr)
-
 		if level > 0 {
-			// Print comments
-			result.WriteString(" "+commentstr+"\n")
+			result.WriteString(" " + commentstr + "\n")
 
 			for _, child := range el.ChildElements() {
 				result.WriteString(EtreeToTTY(child, level-1, indent+1))
@@ -85,57 +81,40 @@ func EtreeToTTY(el *etree.Element, level int, indent int) string {
 			if attributestr != "" {
 				result.WriteString(" ")
 			}
-			//result.WriteString("\033[32m\u2026\033[0m")
-			result.WriteString(c["grn"]+c["ell"]+c["nil"])
-
-			//result.WriteString("...")
-			// this part is shit
+			result.WriteString(c["grn"] + c["ell"] + c["nil"])
 			indentation = ""
 		}
-
 		result.WriteString(fmt.Sprintf("%s}", indentation))
 		if level == 0 {
 			result.WriteString(fmt.Sprintf(" %s", commentstr))
 		}
 		result.WriteString("\n")
-
 	} else {
 		content := strings.ReplaceAll(strings.TrimSpace(el.Text()), "\n", "")
 		result.WriteString(fmt.Sprintf("%s%s:%s "+c["grn"]+"\"%s\""+c["nil"], indentation, el.Tag, attributestr, content))
-
-		//result.WriteString(fmt.Sprintf("%s%s:%s \033[32m\"%s\"\033[0m", indentation, el.Tag, attributestr, content))
-		//result.WriteString(fmt.Sprintf("%s%s:%s \"%s\"", indentation, el.Tag, attributestr, content))
-		// Print comments
-		result.WriteString(" "+commentstr+"\n")
+		result.WriteString(" " + commentstr + "\n")
 	}
 	return result.String()
 }
 
 func ConfigToTTY(doc *etree.Document, path string, level int) string {
-	// check
-
 	parts := strings.Split(path, "/")
 	focused := etree.NewElement(parts[0])
 	depth := len(parts)
-
-		if depth > 1 {
-			parts = parts[:depth-1]
-			current := focused
-			for i := 1; i < len(parts); i++ {
-
-				current = current.CreateElement(parts[i])
-			}
-			if doc.FindElement(path) != nil {
-				current.AddChild(doc.FindElement(path).Copy())
-			}
-		} else {
-			focused = doc.Root()
+	if depth > 1 {
+		parts = parts[:depth-1]
+		current := focused
+		for i := 1; i < len(parts); i++ {
+			current = current.CreateElement(parts[i])
 		}
-
+		if doc.FindElement(path) != nil {
+			current.AddChild(doc.FindElement(path).Copy())
+		}
+	} else {
+		focused = doc.Root()
+	}
 	return EtreeToTTY(focused, depth+level-1, 0)
 }
-
-
 
 func EtreeToJSON(el *etree.Element) (string, error) {
 	doc := etree.NewDocument()

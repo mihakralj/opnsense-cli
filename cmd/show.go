@@ -40,7 +40,7 @@ var showCmd = &cobra.Command{
 			}
 			parts := strings.Split(path, "/")
 			if parts[0] != "opnsense" {
-				path = "opnsense/"+path
+				path = "opnsense/" + path
 			}
 		}
 		internal.Checkos()

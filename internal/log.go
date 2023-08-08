@@ -13,7 +13,7 @@ var (
 	host       string
 	configfile string
 	nocolor    bool
-	depth 		int
+	depth      int
 )
 
 var c = map[string]string{
@@ -51,13 +51,13 @@ func SetFlags(v int, f bool, h string, config string, nc bool, dpt int) {
 		for key := range c {
 			delete(c, key)
 		}
-		c["ell"]="..."
+		c["ell"] = "..."
 	}
 }
 
 func Log(verbosity int, format string, args ...interface{}) {
 	levels := []string{"",
-	    c["red"] + "Error:\t" + c["nil"],
+		c["red"] + "Error:\t" + c["nil"],
 		c["yel"] + "Warn:\t" + c["nil"],
 		c["grn"] + "Info:\t" + c["nil"],
 		c["blu"] + "Note:\t" + c["nil"],

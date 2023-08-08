@@ -41,7 +41,7 @@ opnsense info network/igb0/mtu
 			}
 			parts := strings.Split(path, "/")
 			if parts[0] != "system" {
-				path = "system/"+path
+				path = "system/" + path
 			}
 		}
 		internal.Checkos()
