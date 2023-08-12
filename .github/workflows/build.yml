@@ -62,7 +62,7 @@ jobs:
         run: |
           mkdir -p opnsense/DEBIAN && mkdir -p opnsense/usr/local/bin
           cp ./opnsense-linux opnsense/usr/local/bin/opnsense
-          echo -e "Package: opnsense\nVersion: ${VERSION}\nSection: base\nPriority: optional\nArchitecture: amd64\nMaintainer: Miha Kralj <miha.kralj@outlook.com>\nDescription: opnsense is a command-line utility for managing, configuring, and monitoring OPNsense firewall systems. It facilitates non-GUI administration, both directly in the shell and remotely via an SSH tunnel. All interactions with OPNsense utilize the same mechanisms as the Web GUI, including staged modifications of config.xml and execution of available configd commands." > opnsense/DEBIAN/control
+          echo -e "Package: opnsense-cli\nVersion: ${VERSION}\nSection: base\nPriority: optional\nArchitecture: amd64\nMaintainer: Miha Kralj <miha.kralj@outlook.com>\nDescription: opnsense is a command-line utility for managing, configuring, and monitoring OPNsense firewall systems. It facilitates non-GUI administration, both directly in the shell and remotely via an SSH tunnel. All interactions with OPNsense utilize the same mechanisms as the Web GUI, including staged modifications of config.xml and execution of available configd commands." > opnsense/DEBIAN/control
           dpkg-deb --build opnsense
         shell: bash
 
@@ -109,17 +109,17 @@ jobs:
           flatsize=$(stat -f%z /Users/runner/work/opnsense-cli/opnsense-cli/work-dir/usr/local/bin/opnsense)
           echo "/usr/local/bin/opnsense: ${checksum}" > /Users/runner/work/opnsense-cli/opnsense-cli/sha256checksum
           echo "/usr/local/bin/opnsense" > /Users/runner/work/opnsense-cli/opnsense-cli/plist
-          echo -e "name: opnsense-cli\nversion: ${VERSION}\norigin: net-mgmt/opnsense-cli\ncomment: \"CLI to manage and monitor OPNsense firewall configuration, check status, change settings, and execute commands.\"\ndesc: \"opnsense is a command-line utility for managing, configuring, and monitoring OPNsense firewall systems. It facilitates non-GUI administration, both directly in the shell and remotely via an SSH tunnel. All interactions with OPNsense utilize the same mechanisms as the Web GUI, including staged modifications of config.xml and execution of available configd commands.\"\nmaintainer: \"miha.kralj@outlook.com\"\nwww: \"https://github.com/mihakralj/opnsense-cli\"\nabi: \"FreeBSD:12:amd64\"\narch: \"freebsd:12:x86:64\"\nosversion: 1201000\nprefix: /usr/local\nflatsize: ${flatsize}" > /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo -e "name: opnsense-cli\nversion: ${VERSION}\norigin: net-mgmt/opnsense-cli\ncomment: \"CLI to manage and monitor OPNsense firewall configuration, check status, change settings, and execute commands.\"\ndesc: \"opnsense is a command-line utility for managing, configuring, and monitoring OPNsense firewall systems. It facilitates non-GUI administration, both directly in the shell and remotely via an SSH tunnel. All interactions with OPNsense utilize the same mechanisms as the Web GUI, including staged modifications of config.xml and execution of available configd commands.\"\nmaintainer: \"miha.kralj@outlook.com\"\nwww: \"https://github.com/mihakralj/opnsense-cli\"\nabi: \"FreeBSD:*:amd64\"\nprefix: /usr/local\nflatsize: ${flatsize}" > /Users/runner/work/opnsense-cli/opnsense-cli/manifest
           echo -e "files: {\n  \"/usr/local/bin/opnsense\": \"${checksum}\",\n}" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
-          pkg create -M /Users/runner/work/opnsense-cli/opnsense-cli/manifest -p /Users/runner/work/opnsense-cli/opnsense-cli/plist -o /Users/runner/work/opnsense-cli/opnsense-cli
-          xz -k -c *.pkg >opnsense.txz
-
+          pkg create -M /Users/runner/work/opnsense-cli/opnsense-cli/manifest -o /Users/runner/work/opnsense-cli/opnsense-cli/ -f txz
+          mv opnsense*.pkg opnsense.txz
+          ls -l
 
     - name: Upload all artifacts
       uses: actions/upload-artifact@v3
       with:
         name: bin
-        path: ./opnsense*.txz
+        path: ./opnsense.txz
 
   release:
     needs: [linuxwindows, macbsd]
@@ -132,7 +132,7 @@ jobs:
           path: .
 
       - name: list downloaded files
-        run: ls -af ./bin
+        run: ls -l ./bin
         shell: bash
 
       - name: Create Release and Upload Assets
@@ -145,7 +145,7 @@ jobs:
           files: |
             ./bin/opnsense.deb
             ./bin/opnsense.exe
-            ./bin/opnsense.txz
+            ./bin/*.txz
             ./bin/opnsense-mac
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

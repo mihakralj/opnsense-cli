@@ -16,6 +16,9 @@ var (
 	configfile string
 	nocolor    bool
 	depth      int
+	xmlFlag	   bool
+	yamlFlag   bool
+	jsonFlag   bool
 )
 
 func init() {
@@ -23,13 +26,16 @@ func init() {
 	rootCmd.PersistentFlags().IntVarP(&verbose, "verbose", "v", 1, "Set verbosity level (1-5)")
 	rootCmd.PersistentFlags().BoolVarP(&nocolor, "no-color", "n", false, "Turn off ANSI colored output")
 	rootCmd.PersistentFlags().IntVarP(&depth, "depth", "d", 1, "Specifies number of levels of returned tree (1-5)")
+	rootCmd.PersistentFlags().BoolVar(&xmlFlag, "xml", false, "Output in XML format")
+	rootCmd.PersistentFlags().BoolVar(&jsonFlag, "json", false, "Output in JSON format")
+	rootCmd.PersistentFlags().BoolVar(&yamlFlag, "yaml", false, "Output in YAML format")
+	rootCmd.PersistentFlags().BoolVarP(&force, "force", "f", false, "Accept or bypass checks and prompts")
 	//rootCmd.PersistentFlags().StringVarP(&configfile, "config", "c", "/conf/config.xml", "path to target config.xml")
-	//rootCmd.PersistentFlags().BoolVarP(&force, "force", "f", false, "Override or bypass checks and prompts")
+
 
 	cobra.OnInitialize(func() {
 		configfile = "/conf/config.xml"
-		force = false
-		internal.SetFlags(verbose, force, host, configfile, nocolor, depth)
+		internal.SetFlags(verbose, force, host, configfile, nocolor, depth, xmlFlag, yamlFlag, jsonFlag)
 		//other initializations
 	})
 

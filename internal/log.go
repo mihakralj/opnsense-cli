@@ -14,6 +14,9 @@ var (
 	configfile string
 	nocolor    bool
 	depth      int
+	xmlFlag	   bool
+	yamlFlag   bool
+	jsonFlag   bool
 )
 
 var c = map[string]string{
@@ -36,7 +39,7 @@ var c = map[string]string{
 	"nil": "\033[0m",
 }
 
-func SetFlags(v int, f bool, h string, config string, nc bool, dpt int) {
+func SetFlags(v int, f bool, h string, config string, nc bool, dpt int, x bool, y bool, j bool) {
 	if v < 1 || v > 5 {
 		Log(1, "invalid verbosity level %d. It should be between 1 and 5", v)
 	}
@@ -46,6 +49,9 @@ func SetFlags(v int, f bool, h string, config string, nc bool, dpt int) {
 	configfile = config
 	nocolor = nc
 	depth = dpt
+	xmlFlag = x
+	yamlFlag = y
+	jsonFlag = j
 	Log(5, "flags:\tverbose=%d, host=%s, config=%s", verbose, host, configfile)
 	if nc {
 		for key := range c {
@@ -68,7 +74,7 @@ func Log(verbosity int, format string, args ...interface{}) {
 		fmt.Fprintln(os.Stderr, message)
 	}
 	if verbosity == 2 && !force {
-		fmt.Print("Are you sure? (Y/N): ")
+		fmt.Print(message+"\nAre you sure? (Y/N): ")
 		reader := bufio.NewReader(os.Stdin)
 		response, err := reader.ReadString('\n')
 		if err != nil {

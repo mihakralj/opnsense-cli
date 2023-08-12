@@ -1,13 +1,16 @@
 package internal
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/beevik/etree"
 	"github.com/clbanning/mxj"
+	"gopkg.in/yaml.v3"
 )
 
+/*
 func recursiveFocus(el *etree.Element, parts []string, depth int) *etree.Element {
 	if el.Tag != parts[0] {
 		return nil
@@ -52,6 +55,33 @@ func addChildren(focused, el *etree.Element, depth int) {
 		}
 	}
 }
+*/
+
+func FocusEtree(doc *etree.Document, path string) *etree.Element {
+	if doc.FindElement(path) == nil {
+		Log(1, "Xpath element \"%s\" does not exist",path)
+	}
+	parts := strings.Split(path, "/")
+	focused := etree.NewElement(parts[0])
+	//focused.CreateAttr("xmlns", "https://opnsense.org/namespace")
+	focused.CreateComment("XPath: " + path)
+	depth := len(parts)
+	if depth > 1 {
+		parts = parts[:depth-1]
+		current := focused
+		for i := 1; i < len(parts); i++ {
+			current = current.CreateElement(parts[i])
+		}
+		if doc.FindElement(path) != nil {
+			current.AddChild(doc.FindElement(path).Copy())
+		}
+	} else {
+		focused = doc.Root()
+	}
+	return focused
+}
+
+//////////
 
 func EtreeToTTY(el *etree.Element, level int, indent int) string {
 	indentation := strings.Repeat("    ", indent)
@@ -72,7 +102,7 @@ func EtreeToTTY(el *etree.Element, level int, indent int) string {
 		result.WriteString(fmt.Sprintf("%s%s: {", indentation, el.Tag))
 		result.WriteString(attributestr)
 		if level > 0 {
-			result.WriteString(" " + commentstr + "\n")
+			result.WriteString(fmt.Sprintf(" %s\n", commentstr))
 
 			for _, child := range el.ChildElements() {
 				result.WriteString(EtreeToTTY(child, level-1, indent+1))
@@ -92,33 +122,15 @@ func EtreeToTTY(el *etree.Element, level int, indent int) string {
 	} else {
 		content := strings.ReplaceAll(strings.TrimSpace(el.Text()), "\n", "")
 		result.WriteString(fmt.Sprintf("%s%s:%s "+c["grn"]+"\"%s\""+c["nil"], indentation, el.Tag, attributestr, content))
-		result.WriteString(" " + commentstr + "\n")
+		result.WriteString(fmt.Sprintf(" %s\n", commentstr))
 	}
 	return result.String()
-}
-
-func ConfigToTTY(doc *etree.Document, path string, level int) string {
-	parts := strings.Split(path, "/")
-	focused := etree.NewElement(parts[0])
-	depth := len(parts)
-	if depth > 1 {
-		parts = parts[:depth-1]
-		current := focused
-		for i := 1; i < len(parts); i++ {
-			current = current.CreateElement(parts[i])
-		}
-		if doc.FindElement(path) != nil {
-			current.AddChild(doc.FindElement(path).Copy())
-		}
-	} else {
-		focused = doc.Root()
-	}
-	return EtreeToTTY(focused, depth+level-1, 0)
 }
 
 func EtreeToJSON(el *etree.Element) (string, error) {
 	doc := etree.NewDocument()
 	doc.SetRoot(el.Copy())
+
 	str, err := doc.WriteToString()
 	if err != nil {
 		return "", err
@@ -136,21 +148,39 @@ func EtreeToJSON(el *etree.Element) (string, error) {
 	return string(jsonStr), nil
 }
 
-func ConfigToJSON(doc *etree.Document, path string) string {
-	focused := etree.NewElement("opnsense")
-	parts := strings.Split(path, "/")
-	depth := len(parts)
+//////////
 
-	if depth > 1 {
-		parts = parts[:depth-1]
-		current := focused
-		for i := 1; i < len(parts); i++ {
-			current = current.CreateElement(parts[i])
-		}
-		current.AddChild(doc.FindElement(path).Copy())
-	} else {
-		focused = doc.Root()
+func ConfigToTTY(doc *etree.Document, path string) string {
+	focused := FocusEtree(doc, path)
+	//calculate depth of path
+	return EtreeToTTY(focused, depth+len(strings.Split(path, "/"))-1, 0)
+}
+
+func ConfigToXML(doc *etree.Document, path string) string {
+	focused := FocusEtree(doc, path)
+	newDoc := etree.NewDocument()
+	newDoc.CreateProcInst("xml", `version="1.0" encoding="UTF-8"`)
+	newDoc.SetRoot(focused)
+	newDoc.Indent(2)
+	xmlStr, err := newDoc.WriteToString()
+	if err != nil {
+		return ""
 	}
+	return xmlStr
+}
+
+func ConfigToJSON(doc *etree.Document, path string) string {
+	focused := FocusEtree(doc, path)
 	res, _ := EtreeToJSON(focused)
 	return res
+}
+
+func ConfigToYAML(doc *etree.Document, path string) string {
+	focused := FocusEtree(doc, path)
+	jsonStr, _ := EtreeToJSON(focused)
+	var jsonObj interface{}
+	json.Unmarshal([]byte(jsonStr), &jsonObj)
+
+	yamlBytes, _ := yaml.Marshal(jsonObj)
+	return string(yamlBytes)
 }

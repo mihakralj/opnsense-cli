@@ -2,7 +2,7 @@
 # run make help for options
 
 # Variables
-VERSION=0.1.0
+VERSION=0.2.0
 GO=go
 BUILD_DIR=build
 BINARY_NAME=opnsense

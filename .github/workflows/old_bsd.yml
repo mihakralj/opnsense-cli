@@ -40,19 +40,18 @@ jobs:
           echo "FLATSIZE: ${flatsize}"
           echo "/usr/local/bin/opnsense: ${checksum}" > /Users/runner/work/opnsense-cli/opnsense-cli/sha256checksum
           echo "/usr/local/bin/opnsense" > /Users/runner/work/opnsense-cli/opnsense-cli/plist
-          echo "name: opnsense" > /Users/runner/work/opnsense-cli/opnsense-cli/manifest
-          echo "version: ${VERSION}" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
-          echo "origin: net-mgmt/opnsense" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
-          echo "comment: \"CLI to manage and monitor OPNsense firewall configuration, check status, change settings, and execute commands.\"" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
-          echo "maintainer: \"miha.kralj@outlook.com\"" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
-          echo "www: \"https://github.com/mihakralj/opnsense-cli\"" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
-          echo "arch: freebsd:13:x86:64" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
-          echo "prefix: /usr/local" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
-          echo "flatsize: ${flatsize}" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
-          echo "files: {" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
-          echo "  \"/usr/local/bin/opnsense\": \"${checksum}\"" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
-          echo "}" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
-          pkg create -M /Users/runner/work/opnsense-cli/opnsense-cli/manifest -p /Users/runner/work/opnsense-cli/opnsense-cli/plist -o /Users/runner/work/opnsense-cli/opnsense-cli
+
+          echo "name: \"opnsense\";" > /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "version: \"${VERSION}\";" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "origin: \"net-mgmt/opnsense\";" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "comment: \"CLI to manage and monitor OPNsense firewall configuration, check status, change settings, and execute commands.\";" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "maintainer: \"miha.kralj@outlook.com\";" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "www: \"https://github.com/mihakralj/opnsense-cli\";" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "prefix: \"/usr/local\";" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "abi: \"FreeBSD:12:amd64,FreeBSD:13:amd64\";" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest          echo "flatsize: ${flatsize};" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+          echo "files: { \"/usr/local/bin/opnsense\": \"${checksum}\" };" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
+
+          pkg create -M /Users/runner/work/opnsense-cli/opnsense-cli/manifest -p /Users/runner/work/opnsense-cli/opnsense-cli/plist -o /Users/runner/work/opnsense-cli/opnsense-cli -f txz
           cat /Users/runner/work/opnsense-cli/opnsense-cli/manifest
           ls -l /Users/runner/work/opnsense-cli/opnsense-cli/
 

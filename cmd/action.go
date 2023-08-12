@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/beevik/etree"
@@ -19,8 +20,16 @@ Cobra is a CLI library for Go that empowers applications.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		path := "actions"
+		trimmedArg := ""
 		if len(args) >= 1 {
-			trimmedArg := strings.Trim(args[0], "/")
+			trimmedArg = args[0]
+			if len(args) > 1 {
+				trimmedArg = trimmedArg+"/"+args[1]
+			}
+			if len(args) > 2 {
+				trimmedArg += "."+args[2]
+			}
+			//trimmedArg = strings.Trim(args[0], "/")
 			if trimmedArg != "" {
 				path = trimmedArg
 			}
@@ -37,8 +46,24 @@ Cobra is a CLI library for Go that empowers applications.`,
 		}
 		configdoc := etree.NewDocument()
 		configdoc.ReadFromString(config)
-		configtty := internal.ConfigToTTY(configdoc, path, depth)
-		fmt.Println(configtty)
+		node := configdoc.FindElement(path + "/command")
+
+		if verbose > 2 || node == nil{
+			configtty := internal.ConfigToTTY(configdoc, path)
+			fmt.Println(configtty)
+		}
+
+		if node != nil {
+			path = strings.Replace(path, "actions/", "", 1)
+			command := "configctl " + regexp.MustCompile(`[/\.]`).ReplaceAllString(path, " ")
+			internal.Log(2,"sending command: %s ",command)
+			ret, err := internal.ExecuteCmd(command, host)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Println(ret)
+		}
+
 	},
 }
 

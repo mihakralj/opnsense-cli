@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/beevik/etree"
@@ -35,6 +36,9 @@ var showCmd = &cobra.Command{
 		path := "opnsense"
 		if len(args) >= 1 {
 			trimmedArg := strings.Trim(args[0], "/")
+			if matched, _ := regexp.MatchString(`\[0\]`, trimmedArg); matched {
+				internal.Log(1, "XPath indexing of elements starts with 1, not 0")
+			}
 			if trimmedArg != "" {
 				path = trimmedArg
 			}
@@ -50,26 +54,25 @@ var showCmd = &cobra.Command{
 			panic(err)
 		}
 		configdoc := etree.NewDocument()
-		configdoc.ReadFromString(config)
-		configtty := internal.ConfigToTTY(configdoc, path, depth)
-		fmt.Println(configtty)
 
-		//read config, path, depth
-		// display ConfigToTTY
+		configdoc.ReadFromString(config)
+
+		configout := ""
+		if xmlFlag {
+			configout = internal.ConfigToXML(configdoc, path)
+		} else if jsonFlag {
+			configout = internal.ConfigToJSON(configdoc, path)
+		} else if yamlFlag {
+			configout = internal.ConfigToJSON(configdoc, path)
+		} else {
+			configout = internal.ConfigToTTY(configdoc, path)
+		}
+
+		fmt.Println(configout)
 
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(showCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// showCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// showCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
