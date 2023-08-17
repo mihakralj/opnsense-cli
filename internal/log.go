@@ -35,7 +35,8 @@ var c = map[string]string{
 	"bgc": "\033[46m",
 	"bgw": "\033[47m",
 	"ita": "\033[3m",
-	"ell": "\u2026",
+	//"ell": "\u2026",
+	"ell": "...",
 	"nil": "\033[0m",
 }
 

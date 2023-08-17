@@ -1,4 +1,4 @@
-name: Go
+name: BuildPublish
 
 on:
   push:
@@ -42,15 +42,6 @@ jobs:
         run: |
           go build -ldflags "-s -w -X cmd.Version=${{ env.VERSION }}" -o ./opnsense.exe
 
-      - name: Build macoOS binary
-        env:
-          GOOS: darwin
-          GOARCH: amd64
-        run: |
-          go build -ldflags "-s -w -X cmd.Version=${{ env.VERSION }}" -o ./opnsense-mac
-
-        #need to sign and notarize this binary
-
       - name: Build Linux binary
         env:
           GOOS: linux
@@ -61,6 +52,7 @@ jobs:
       - name: package linux binary into .deb
         run: |
           mkdir -p opnsense/DEBIAN && mkdir -p opnsense/usr/local/bin
+          chmod +x ./opnsense-linux
           cp ./opnsense-linux opnsense/usr/local/bin/opnsense
           echo -e "Package: opnsense-cli\nVersion: ${VERSION}\nSection: base\nPriority: optional\nArchitecture: amd64\nMaintainer: Miha Kralj <miha.kralj@outlook.com>\nDescription: opnsense is a command-line utility for managing, configuring, and monitoring OPNsense firewall systems. It facilitates non-GUI administration, both directly in the shell and remotely via an SSH tunnel. All interactions with OPNsense utilize the same mechanisms as the Web GUI, including staged modifications of config.xml and execution of available configd commands." > opnsense/DEBIAN/control
           dpkg-deb --build opnsense
@@ -73,12 +65,17 @@ jobs:
           path: |
             ./opnsense.deb
             ./opnsense.exe
-            ./opnsense-mac
 
   macbsd:
     runs-on: macos-12
     name: MacOS runner with FreeBSD virtualbox
     steps:
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.20'
+        check-latest: true
+
     - name: Check out code
       uses: actions/checkout@v3
 
@@ -87,7 +84,62 @@ jobs:
       run: echo "VERSION=$(awk -F '=' '/^VERSION/ {print $2}' Makefile)" >> $GITHUB_ENV
       shell: bash
 
-    - name: Compile in FreeBSD
+    - name: Select XCode
+      uses: BoundfoxStudios/action-xcode-select@v1
+      with:
+        version: 14.2
+
+
+    - name: Import app certificate
+      run: |
+        security create-keychain -p ${{ secrets.APPLE_CERTPWD }} build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p ${{ secrets.APPLE_CERTPWD }} build.keychain
+        echo "${{ secrets.APPLE_APPCERT }}" | base64 --decode -o apple_certificate.p12
+        security import apple_certificate.p12  -k build.keychain -P ${{ secrets.APPLE_CERTPWD }} -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ${{ secrets.APPLE_CERTPWD }} build.keychain
+        echo "${{ secrets.APPLE_INSTCERT }}" | base64 --decode -o apple_instcert.p12
+        security import apple_instcert.p12  -k build.keychain -P ${{ secrets.APPLE_CERTPWD }} -T /usr/bin/productsign
+        security set-key-partition-list -S apple-tool:,apple:,productsign: -s -k ${{ secrets.APPLE_CERTPWD }} build.keychain
+        security find-identity -v
+
+    - name: Build macOS binary
+      env:
+        GOOS: darwin
+        GOARCH: amd64
+      run: |
+        mkdir -p ./opnsense/usr/local/bin
+        go build -ldflags "-s -w -X cmd.Version=${{ env.VERSION }}" -o ./opnsense/usr/local/bin/opnsense
+        chmod +x ./opnsense/usr/local/bin/opnsense
+
+    - name: sign binary
+      run: |
+        APPSIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Application" | awk '{print $2}')
+        codesign --deep --force --verify --verbose --timestamp --options runtime --sign $APPSIGNING_IDENTITY ./opnsense/usr/local/bin/opnsense
+        cp ./opnsense/usr/local/bin/opnsense ./opnsense-macos
+
+    - name: build component package
+      run: |
+        pkgbuild --root ./opnsense --identifier com.github.mihakralj.opnsense --version "${{ env.VERSION }}" ./component-opnsense.pkg
+        productbuild --synthesize --package ./component-opnsense.pkg ./distribution.xml
+        productbuild --distribution ./distribution.xml --package-path ./ ./opnsense.pkg
+
+    - name: sign the distribution package
+      run:  |
+        INSTSIGNING_IDENTITY=$(security find-identity -v -p basic | grep "Installer" | awk '{print $2}')
+        productsign --keychain build.keychain --sign $INSTSIGNING_IDENTITY ./opnsense.pkg ./signed-opnsense.pkg
+        mv ./signed-opnsense.pkg ./opnsense.pkg
+
+    - name: notarize
+      run: |
+        xcrun notarytool submit ./opnsense.pkg --wait --apple-id ${{ secrets.APPLE_NOTARIZATION_USERNAME }} --password ${{ secrets.APPLE_NOTARIZATION_PASSWORD }} --team-id ${{ secrets.APPLE_TEAM_NAME }}
+        xcrun stapler staple ./opnsense.pkg
+
+
+
+
+
+    - name: Compile .txz package in FreeBSD
       id: compile
       uses: vmactions/freebsd-vm@v0.3.1
       with:
@@ -112,41 +164,50 @@ jobs:
           echo -e "name: opnsense-cli\nversion: ${VERSION}\norigin: net-mgmt/opnsense-cli\ncomment: \"CLI to manage and monitor OPNsense firewall configuration, check status, change settings, and execute commands.\"\ndesc: \"opnsense is a command-line utility for managing, configuring, and monitoring OPNsense firewall systems. It facilitates non-GUI administration, both directly in the shell and remotely via an SSH tunnel. All interactions with OPNsense utilize the same mechanisms as the Web GUI, including staged modifications of config.xml and execution of available configd commands.\"\nmaintainer: \"miha.kralj@outlook.com\"\nwww: \"https://github.com/mihakralj/opnsense-cli\"\nabi: \"FreeBSD:*:amd64\"\nprefix: /usr/local\nflatsize: ${flatsize}" > /Users/runner/work/opnsense-cli/opnsense-cli/manifest
           echo -e "files: {\n  \"/usr/local/bin/opnsense\": \"${checksum}\",\n}" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
           pkg create -M /Users/runner/work/opnsense-cli/opnsense-cli/manifest -o /Users/runner/work/opnsense-cli/opnsense-cli/ -f txz
-          mv opnsense*.pkg opnsense.txz
+          mv opnsense-cli-*.pkg opnsense.txz
           ls -l
 
     - name: Upload all artifacts
       uses: actions/upload-artifact@v3
       with:
         name: bin
-        path: ./opnsense.txz
+        path: |
+          ./opnsense-macos
+          ./opnsense.txz
+          ./opnsense.pkg
 
   release:
     needs: [linuxwindows, macbsd]
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
       - name: Download all artifacts
         uses: actions/download-artifact@v2
         with:
           path: .
 
       - name: list downloaded files
-        run: ls -l ./bin
+        run: |
+          ls -l ./bin
         shell: bash
 
-      - name: Create Release and Upload Assets
+      - name: Remove Existing Beta Tag
+        run: |
+          git tag -d beta || true
+          git push origin :refs/tags/beta || true
+
+      - name: Create Beta Release and Upload Assets
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
           prerelease: true
-          tag_name: ${{ env.VERSION }}
+          draft: false
+          tag_name: beta
           name: opnsense-cli ${{ env.VERSION }}
-          files: |
-            ./bin/opnsense.deb
-            ./bin/opnsense.exe
-            ./bin/*.txz
-            ./bin/opnsense-mac
+          files: ./bin/opnsense*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ needs.linuxwindows.outputs.version }}

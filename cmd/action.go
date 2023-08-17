@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -20,14 +21,16 @@ Cobra is a CLI library for Go that empowers applications.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		path := "actions"
+
+		// need better parsing of tokens, so the command can be recognized better and parameters passed
 		trimmedArg := ""
 		if len(args) >= 1 {
 			trimmedArg = args[0]
 			if len(args) > 1 {
-				trimmedArg = trimmedArg+"/"+args[1]
+				trimmedArg = trimmedArg + "/" + args[1]
 			}
 			if len(args) > 2 {
-				trimmedArg += "."+args[2]
+				trimmedArg += "." + args[2]
 			}
 			//trimmedArg = strings.Trim(args[0], "/")
 			if trimmedArg != "" {
@@ -48,7 +51,7 @@ Cobra is a CLI library for Go that empowers applications.`,
 		configdoc.ReadFromString(config)
 		node := configdoc.FindElement(path + "/command")
 
-		if verbose > 2 || node == nil{
+		if !force {
 			configtty := internal.ConfigToTTY(configdoc, path)
 			fmt.Println(configtty)
 		}
@@ -56,12 +59,27 @@ Cobra is a CLI library for Go that empowers applications.`,
 		if node != nil {
 			path = strings.Replace(path, "actions/", "", 1)
 			command := "configctl " + regexp.MustCompile(`[/\.]`).ReplaceAllString(path, " ")
-			internal.Log(2,"sending command: %s ",command)
+			internal.Log(2, "sending command: %s ", command)
 			ret, err := internal.ExecuteCmd(command, host)
 			if err != nil {
 				panic(err)
 			}
-			fmt.Println(ret)
+			var js json.RawMessage
+			if err := json.Unmarshal([]byte(ret), &js); err == nil {
+				var obj interface{}
+				if err := json.Unmarshal(js, &obj); err != nil {
+					fmt.Println("Error unmarshaling JSON:", err)
+					return
+				}
+				prettyJSON, err := json.MarshalIndent(obj, "", "  ")
+				if err != nil {
+					fmt.Println("Error formatting JSON:", err)
+					return
+				}
+				fmt.Println(string(prettyJSON))
+			} else {
+				fmt.Println(ret)
+			}
 		}
 
 	},

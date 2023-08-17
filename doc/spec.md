@@ -12,19 +12,18 @@ opnsense-cli utility should bridge this gap:
 
 ## Commands
 
-**info** - retrieves system information from the firewall
+**show system <xpath>** - retrieves system information from the firewall
+**show config <xpath>** - display hierarchical segments of config.xml
+**show backup <config>** - list available backup configs or a specific backup
+**run <service> <command>** -execute commands on OPNsense
+**set <xpath> value <value>** - set a value of specific node in staging config
+**commit** - move staging config to active config
+**compare <config> <config>** - compare staging config and active config - or any two configs
+**discard <xpath>** - discard a value in staging config - or all changes in staging config
+**save <config>** - create a new backup config
+**load <config>** - move specific backup config to active config
+**delete <config>** - delete a specific config file
 
-**show** - display hierarchical segments of config.xml
-
-**action** - display (and execute) commands that are available on OPNsense
-
-### Planned
-
-- set
-- discard
-- bakcup
-- commit
-- revert/restore/rollback
 
 ## Flags
 

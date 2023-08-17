@@ -47,15 +47,33 @@ var showCmd = &cobra.Command{
 				path = "opnsense/" + path
 			}
 		}
-		internal.Checkos()
-		bash := "cat /conf/config.xml"
+		bash := ""
+		//internal.Checkos()
+		configdoc := etree.NewDocument()
+		bash = fmt.Sprintf("cat %s", configfile)
 		config, err := internal.ExecuteCmd(bash, host)
 		if err != nil {
-			panic(err)
+			internal.Log(1, "execution error: %s", err.Error())
 		}
-		configdoc := etree.NewDocument()
+		err = configdoc.ReadFromString(config)
+		if err != nil {
+			internal.Log(1, "%s is not an XML", configfile)
+		}
 
-		configdoc.ReadFromString(config)
+		stagingdoc := etree.NewDocument()
+		bash = fmt.Sprintf("if [ -f %s ]; then cat %s; else cat %s; fi", stagingfile, stagingfile, configfile)
+		staging, err := internal.ExecuteCmd(bash, host)
+		if err != nil {
+			internal.Log(1, "execution error: %s", err.Error())
+		}
+		err = stagingdoc.ReadFromString(staging)
+		if err != nil {
+			internal.Log(1, "%s is not an XML", stagingfile)
+		}
+
+		if false {
+			fmt.Println(stagingdoc)
+		}
 
 		configout := ""
 		if xmlFlag {

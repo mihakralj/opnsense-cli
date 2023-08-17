@@ -14,9 +14,10 @@ var (
 	force      bool
 	host       string
 	configfile string
+	stagingfile string
 	nocolor    bool
 	depth      int
-	xmlFlag	   bool
+	xmlFlag    bool
 	yamlFlag   bool
 	jsonFlag   bool
 )
@@ -32,9 +33,9 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&force, "force", "f", false, "Accept or bypass checks and prompts")
 	//rootCmd.PersistentFlags().StringVarP(&configfile, "config", "c", "/conf/config.xml", "path to target config.xml")
 
-
 	cobra.OnInitialize(func() {
 		configfile = "/conf/config.xml"
+		stagingfile = "/conf/staging.xml"
 		internal.SetFlags(verbose, force, host, configfile, nocolor, depth, xmlFlag, yamlFlag, jsonFlag)
 		//other initializations
 	})

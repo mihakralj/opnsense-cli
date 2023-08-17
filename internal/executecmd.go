@@ -8,11 +8,15 @@ import (
 
 func ExecuteCmd(command, host string) (string, error) {
 
+	Log(4,"sh -c %s",command)
 	if host == "" {
+		Log(5, "no target provided; executing command locally.")
 		out, err := exec.Command("sh", "-c", command).Output()
 		if err != nil {
-			return "", fmt.Errorf("failed to execute command locally: %v", err)
+			Log(3, "failed to execute sh command. %s", err.Error())
+			return "", err
 		}
+		Log(5, "received results from executed command.")
 		return string(out), nil
 	}
 	sshClient, err := getSSHClient(host)
@@ -29,13 +33,11 @@ func ExecuteCmd(command, host string) (string, error) {
 	var stdoutBuf bytes.Buffer
 	session.Stdout = &stdoutBuf
 
-	Log(4, "%s", command) //info level
-
 	err = session.Run(command)
-
 	if err != nil {
-		return "", fmt.Errorf("failed to run command: %v", err)
+		Log(3, "failed to execute sh command. %s", err.Error())
+		return "", err
 	}
-
+	Log(5, "received results from executed command.")
 	return stdoutBuf.String(), nil
 }
