@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -14,7 +13,7 @@ func Checkos() (string, error) {
 	}
 	osstr = strings.TrimSpace(osstr)
 	if osstr != "FreeBSD OPNsense" {
-		return "", fmt.Errorf("the target system is not FreeBSD OPNsense")
+		Log(1, "%s is not OPNsense system", osstr)
 	}
 	Log(4, "OPNsense detected")
 	return osstr, nil

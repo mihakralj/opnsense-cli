@@ -96,7 +96,7 @@ func EtreeToTTY(el *etree.Element, level int, indent int) string {
 	// attributes
 	attributestr := ""
 	for _, attr := range el.Attr {
-		attributestr = fmt.Sprintf(c["ita"]+c["blu"]+" (%s=\"%s\")"+c["nil"], attr.Key, attr.Value)
+		attributestr += fmt.Sprintf(c["ita"]+c["blu"]+" (%s=\"%s\")"+c["nil"], attr.Key, attr.Value)
 	}
 	if len(el.ChildElements()) > 0 {
 		result.WriteString(fmt.Sprintf("%s%s: {", indentation, el.Tag))

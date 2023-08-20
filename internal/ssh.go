@@ -51,7 +51,7 @@ func getSSHClient(target string) (*SSHClient, error) {
 		}
 
 		if len(config.Auth) == 0 {
-			fmt.Println("No suitable SSH identities found in ssh-agent.\nFor enhanced security add SSH key to the ssh agent")
+			fmt.Println("No suitable SSH identities found in ssh-agent.\nFor enhanced security add SSH key to the ssh agent using ssh-add command")
 			fmt.Printf("Enter password for %s@%s: \n", user, host)
 			bytePassword, err := term.ReadPassword(int(syscall.Stdin))
 			fmt.Println()

@@ -1,6 +1,5 @@
 /*
 Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
@@ -13,9 +12,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// infoCmd represents the status command
-var infoCmd = &cobra.Command{
-	Use:   "info [node]",
+// systemCmd represents the status command
+var systemCmd = &cobra.Command{
+	Use:   "system [node]",
 	Short: "Retrieves system information",
 	Long: `
 Info command provides a comprehensive overview of the OPNsense's current state.
@@ -32,6 +31,10 @@ opnsense info storage/disk0
 opnsense info network/igb0/mtu
 `,
 	Run: func(cmd *cobra.Command, args []string) {
+		if changed := cmd.Flags().Changed("depth"); !changed {
+			depth = 2
+			internal.SetFlags(verbose, force, host, configfile, nocolor, depth, xmlFlag, yamlFlag, jsonFlag)
+		}
 
 		path := "system"
 		if len(args) >= 1 {
@@ -71,15 +74,5 @@ opnsense info network/igb0/mtu
 }
 
 func init() {
-	rootCmd.AddCommand(infoCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// statusCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// statusCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	showCmd.AddCommand(systemCmd)
 }

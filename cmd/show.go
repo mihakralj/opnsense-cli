@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-	http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,80 +17,33 @@ package cmd
 
 import (
 	"fmt"
-	"regexp"
-	"strings"
 
-	"github.com/beevik/etree"
-	"github.com/mihakralj/opnsense/internal"
 	"github.com/spf13/cobra"
 )
 
 // showCmd represents the show command
 var showCmd = &cobra.Command{
-	Use:   "show",
-	Short: "Displays information about configuration stored in config.xml",
-	Long: `The show command displays configuration elements in config.xml, including interfaces, routes, firewall rules, and other system settings.
-	 Use this command to view the current system configuration and troubleshoot issues.`,
+	Use:   "show [node]",
+	Short: "Display information related to OPNsense system",
+	Long: `The 'show' command retrieves various details about the OPNsense system:
+- show system <xpath>: Retrieves system information from the firewall.
+- show config <xpath>: Displays hierarchical segments of config.xml.
+- show backup <config>: Lists available backup configs or a specific backup.`,
 	Run: func(cmd *cobra.Command, args []string) {
-
-		path := "opnsense"
-		if len(args) >= 1 {
-			trimmedArg := strings.Trim(args[0], "/")
-			if matched, _ := regexp.MatchString(`\[0\]`, trimmedArg); matched {
-				internal.Log(1, "XPath indexing of elements starts with 1, not 0")
-			}
-			if trimmedArg != "" {
-				path = trimmedArg
-			}
-			parts := strings.Split(path, "/")
-			if parts[0] != "opnsense" {
-				path = "opnsense/" + path
-			}
-		}
-		bash := ""
-		//internal.Checkos()
-		configdoc := etree.NewDocument()
-		bash = fmt.Sprintf("cat %s", configfile)
-		config, err := internal.ExecuteCmd(bash, host)
-		if err != nil {
-			internal.Log(1, "execution error: %s", err.Error())
-		}
-		err = configdoc.ReadFromString(config)
-		if err != nil {
-			internal.Log(1, "%s is not an XML", configfile)
-		}
-
-		stagingdoc := etree.NewDocument()
-		bash = fmt.Sprintf("if [ -f %s ]; then cat %s; else cat %s; fi", stagingfile, stagingfile, configfile)
-		staging, err := internal.ExecuteCmd(bash, host)
-		if err != nil {
-			internal.Log(1, "execution error: %s", err.Error())
-		}
-		err = stagingdoc.ReadFromString(staging)
-		if err != nil {
-			internal.Log(1, "%s is not an XML", stagingfile)
-		}
-
-		if false {
-			fmt.Println(stagingdoc)
-		}
-
-		configout := ""
-		if xmlFlag {
-			configout = internal.ConfigToXML(configdoc, path)
-		} else if jsonFlag {
-			configout = internal.ConfigToJSON(configdoc, path)
-		} else if yamlFlag {
-			configout = internal.ConfigToJSON(configdoc, path)
-		} else {
-			configout = internal.ConfigToTTY(configdoc, path)
-		}
-
-		fmt.Println(configout)
-
+		fmt.Println("Specify a subcommand such as 'system', 'config', or 'backup'")
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(showCmd)
+
+	// Here you will define your flags and configuration settings.
+
+	// Cobra supports Persistent Flags which will work for this command
+	// and all subcommands, e.g.:
+	// showCmd.PersistentFlags().String("foo", "", "A help for foo")
+
+	// Cobra supports local flags which will only run when this command
+	// is called directly, e.g.:
+	// showCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

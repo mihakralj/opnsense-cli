@@ -1,23 +1,26 @@
-# OPNsense CLI
+# OPNsense Command Line Interface (CLI)
 
-The **opnsense** CLI is a  command-line utility designed to manage, configure, and monitor OPNsense firewall systems. It provides administrators and power users an alternative way to interact with the firewall system without relying on the graphical user interface (GUI). The CLI facilitates both local and remote management via an SSH tunnel, making it versatile for a range of deployment scenarios. Whether it's executing direct configurations, orchestrating complex automation tasks, or troubleshooting on-the-fly, opnsense CLI streamlines these operations through FreeBSD shell commands, employing the same commands used in the Web GUI. Designed with transparency and verifiability in mind, the CLI's shell commands are traceable and each change to the firewall is seeking interactive confirmation (unless supressed with --force flag). Opnsense CLI supports various operating systems including Windows, macOS, Linux, and OpenBSD, allowing creation of administration scripts on either locally on OPNsense system or remotely from admin workstation.
+*OPNsense CLI* is a command-line utility for FreeBSD, Linux, MacOS and Windows that empowers administrators and power users to manage, configure, and monitor OPNsense firewall systems. The CLI provides an alternative method to browser-based GUI to interact with the firewall system.
 
-The opnsense CLI can be installed on Windows, macOS, Linux, and OpenBSD, and can target an OPNsense system either locally or remotely.
+## Features and Benefits
+- *Versatility*: Can operate both locally and remotely (via SSH),and is suitable for various deployment scenarios.
+- *Transparency and Control*: All opnsense-cli Commands are bash scripts (and not API calls), with interactive confirmation for changes (bypassable with the --force flag).
+- *Cross-Platform Support*: Works with macOS, Windows, Linux, and OpenBSD.
+- *Streamlined Operations*: Facilitates repeatable configurations, troubleshooting and complex automations.
 
 ## Why Use opnsense CLI?
 
-The OPNsense GUI offers fail-safe but limited configuration capabilities, while the FreeBSD terminal provides direct access to all functionalities of OPNsense but with a greater risk of errors. The `opnsense-cli` utility bridges this gap by:
+Administrators  typically only two options how to manage the firewall: either through browser-based GUI, or using FreeBSD commands in bash. The opnsense CLI utility provides the middle option by using command line to quickly perform common tasks:
 
-- Allowing a quick view of basic firewall vitals.
-- Providing command-line access to a local or remote OPNsense firewall.
-- Enabling staged and controlled changes to `conf/config.xml` with rollback options.
-- Allowing controlled execution of OPNsense `configctl` commands, calling the same pre-configured commands as the GUI.
+- A quick view of firewall settings such as configuration, backups, system vitals.
+- Controlled changes of `conf/config.xml`, including staging and rollback options.
+- Controlled execution of any OPNsense command available through `configctl`.
 
 ## Usage
 
 `opnsense [flags] command [parameters]`
 
-### (Planned) Commands
+### Commands
 
 - **`show system <xpath>`**: Retrieves system information from the firewall.
 - **`show config <xpath>`**: Displays hierarchical segments of `config.xml`.
@@ -44,20 +47,35 @@ The OPNsense GUI offers fail-safe but limited configuration capabilities, while 
 
 ## Installation
 
-BSD12/13 install of opnsense.txz package (into _usr/local/bin_):
-`sudo pkg add https://github.com/mihakralj/opnsense-cli/releases/download/beta/opnsense.txz`
+### FreeBSD 12/13
 
-Signed macos pkg (into _/usr/local/bin_):
-`wget https://github.com/mihakralj/opnsense-cli/releases/download/beta/opnsense-macos.pkg`
-`sudo installer -pkg opnsense-macos.pkg -target /`
+installs to `usr/local/bin`:
+```bash
+sudo pkg add https://github.com/mihakralj/opnsense-cli/releases/download/beta/opnsense.txz
+```
+### Debian/Ubuntu
 
-Direct download of signed macos opnsense binary:
-`wget https://github.com/mihakralj/opnsense-cli/releases/download/beta/opnsense-macos -O opnsense`
-`sudo chmod +x opnsense-macos`
+installs to `usr/local/bin`:
+```bash
+curl -O https://github.com/mihakralj/opnsense-cli/releases/download/beta/opnsense.deb
+dpkg -i opnsense.deb
+```
 
-Ubuntu/Debian opnsense.deb install (into _usr/local/bin_):
-`wget https://github.com/mihakralj/opnsense-cli/releases/download/beta/opnsense.deb`
-`dpkg -i opnsense.deb`
+### macOS
+Package install (installs to `/usr/local/bin`):
+```bash
+curl -O https://github.com/mihakralj/opnsense-cli/releases/download/beta/opnsense.pkg
+sudo installer -pkg opnsense.pkg -target /
+```
 
-Windows opnsense.exe:
-` Invoke-WebRequest -Uri https://github.com/mihakralj/opnsense-cli/releases/download/beta/opnsense.exe -OutFile opnsense.exe`
+signed binary:
+```bash
+curl -O https://github.com/mihakralj/opnsense-cli/releases/download/beta/opnsense -O opnsense
+sudo chmod +x opnsense
+```
+
+### Windows
+ executable `opnsense.exe`:
+```powershell
+Invoke-WebRequest -Uri https://github.com/mihakralj/opnsense-cli/releases/download/beta/opnsense.exe -OutFile opnsense.exe
+```
