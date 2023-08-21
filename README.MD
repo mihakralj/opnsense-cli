@@ -22,17 +22,17 @@ Administrators  typically only two options how to manage the firewall: either th
 
 ### Commands
 
-- **`show system <xpath>`**: Retrieves system information from the firewall.
-- **`show config <xpath>`**: Displays hierarchical segments of `config.xml`.
-- **`show backup <config>`**: Lists available backup configs or a specific backup.
+- **`show system [<xpath>]`**: Retrieves system information from the firewall.
+- **`show config [<xpath>]`**: Displays xpath segment of config.xml.
+- **`show backup [<backup.xml>]`**: Lists available backup configs or displays a specific backup.
 - **`run <service> <command>`**: Executes commands on OPNsense.
-- **`set <xpath> value <value>`**: Sets a value of a specific node in the staging config.
-- **`commit`**: Moves staging config to active config.
-- **`compare [<config>] [<config>]`**: Compares staging config and active config or any two configs.
-- **`discard [<xpath>]`**: Discards a value in the staging config or all changes in the staging config.
-- **`save [<config>]`**: Creates a new backup config.
-- **`load <config>`**: Moves a specific backup config to active config.
-- **`delete <config>`**: Deletes a specific config file.
+- **`set <xpath> value <value>`**: Sets a value of a specific node in staging.xml file.
+- **`commit`**: Moves staging.xml to active config.xml.
+- **`compare [<staging.xml>] [<config.xml>]`**: Compares two config files.
+- **`discard [<xpath>]`**: Discards a value (or all changes) in the staging.xml.
+- **`save [<backup.xml>]`**: Creates a new backup.xml.
+- **`load [<backup.xml>]`**: Restores config.xml from a specific backup.xml. (alias: `restore``)
+- **`delete <backup.xml>`**: Deletes a specific backup.xml.
 
 ### Flags
 

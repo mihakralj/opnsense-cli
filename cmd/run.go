@@ -11,13 +11,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var actionCmd = &cobra.Command{
-	Use:   "action",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+var runCmd = &cobra.Command{
+	Use:   "run [service] [command] [parameters]",
+	Short: "Executes commands on OPNsense firewall.",
+	Long: `Execute registered command on OPNsense.
 
-Cobra is a CLI library for Go that empowers applications.`,
+The 'run' command is used to execute specific command that is registered with 'configctl' on OPNsense.`,
+
+	Example: `  opnsense run                      - List configd services
+  opnsense run dns                  - List commands for dns service
+  opnsense run dhcpd list leases    - Show DHCP leases
+  opnsense run interface flush arp  - Flush arp table
+  opnsense run firmware reboot      - Issue a reboot
+`,
+
 	Run: func(cmd *cobra.Command, args []string) {
 
 		path := "actions"
@@ -86,6 +93,6 @@ Cobra is a CLI library for Go that empowers applications.`,
 }
 
 func init() {
-	rootCmd.AddCommand(actionCmd)
+	rootCmd.AddCommand(runCmd)
 	// Here you will define your flags and configuration settings.
 }

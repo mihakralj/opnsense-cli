@@ -12,6 +12,7 @@ import (
 
 type SSHClient struct {
 	Session *ssh.Session
+	Client  *ssh.Client
 }
 
 var (
@@ -39,40 +40,53 @@ func getSSHClient(target string) (*SSHClient, error) {
 		host = userhost
 	}
 
+	// try to get config.Auth from sshAgent
+	//   if no identities, skip to password
+	//   try sshDial to get connection
+	//   if failed, skip to password
+	//   try sshDial with password
+
+	var connection *ssh.Client
+
 	if config == nil {
 		config = &ssh.ClientConfig{
 			User:            user,
+			Auth:            []ssh.AuthMethod{},
 			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		}
 
+		//try to get sshAgent
 		sshAgent, err := GetSSHAgent()
 		if err == nil {
-			config.Auth = []ssh.AuthMethod{sshAgent}
-		}
-
-		if len(config.Auth) == 0 {
-			fmt.Println("No suitable SSH identities found in ssh-agent.\nFor enhanced security add SSH key to the ssh agent using ssh-add command")
-			fmt.Printf("Enter password for %s@%s: \n", user, host)
-			bytePassword, err := term.ReadPassword(int(syscall.Stdin))
-			fmt.Println()
-			if err != nil {
-				return nil, fmt.Errorf("failed to read password: %v", err)
+			config.Auth = append(config.Auth, sshAgent)
+			if len(config.Auth) > 0 {
+				connection, err = ssh.Dial("tcp", host+":"+port, config)
+				if err == nil {
+					return &SSHClient{Client: connection}, nil
+				}
 			}
-			password := string(bytePassword)
-			config.Auth = []ssh.AuthMethod{ssh.Password(password)}
+		}
+		fmt.Println("No authorized SSH keys found in local ssh agent, reverting to password-based access.\nTo enable seamless access, use the 'ssh-add' to add the authorized key for user",user)
+		fmt.Printf("Enter password for %s@%s: ", user, host)
+		bytePassword, err := term.ReadPassword(int(syscall.Stdin))
+		if err != nil {
+			Log(5, "failed to read password: %v", err)
+		}
+		password := string(bytePassword)
+		config.Auth = []ssh.AuthMethod{ssh.Password(password)}
+		connection, err = ssh.Dial("tcp", host+":"+port, config)
+		if err != nil {
+			fmt.Println()
+			Log(1, "%v", err)
+		} else {
+			fmt.Println()
+			return &SSHClient{Client: connection}, nil
 		}
 	}
-
-	connection, err := ssh.Dial("tcp", host+":"+port, config)
+	connection, err = ssh.Dial("tcp", host+":"+port, config)
 	if err != nil {
 		Log(1, "%v", err)
 	}
-
-	session, err := connection.NewSession()
-	if err != nil {
-		Log(1, "%v", err)
-	}
-
-	SshClient = &SSHClient{Session: session}
+	SshClient = &SSHClient{Client: connection}
 	return SshClient, nil
 }

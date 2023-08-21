@@ -27,12 +27,13 @@ jobs:
         run: sudo apt-get install build-essential devscripts debhelper dh-make
         shell: bash
 
-      - name: Extract version from Makefile
+      - name: Extract version from root.go
         id: extract_version
         run: |
-          VERSION=$(awk -F '=' '/^VERSION/ {print $2}' Makefile)
+          VERSION=$(grep 'Version[[:space:]]*string' cmd/root.go | awk -F'"' '{ print $2 }')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "::set-output name=version::${VERSION}"
+          echo "VERSION=$VERSION"
         shell: bash
 
       - name: Build Windows binary
@@ -79,16 +80,19 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v3
 
-    - name: Extract version from Makefile
+    - name: Extract version from root.go
       id: extract_version
-      run: echo "VERSION=$(awk -F '=' '/^VERSION/ {print $2}' Makefile)" >> $GITHUB_ENV
+      run: |
+        VERSION=$(grep 'Version[[:space:]]*string' cmd/root.go | awk -F'"' '{ print $2 }')
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "::set-output name=version::${VERSION}"
+        echo "VERSION=$VERSION"
       shell: bash
 
     - name: Select XCode
       uses: BoundfoxStudios/action-xcode-select@v1
       with:
         version: 14.2
-
 
     - name: Import app certificate
       run: |
@@ -135,10 +139,6 @@ jobs:
         xcrun notarytool submit ./opnsense.pkg --wait --apple-id ${{ secrets.APPLE_NOTARIZATION_USERNAME }} --password ${{ secrets.APPLE_NOTARIZATION_PASSWORD }} --team-id ${{ secrets.APPLE_TEAM_NAME }}
         xcrun stapler staple ./opnsense.pkg
 
-
-
-
-
     - name: Compile .txz package in FreeBSD
       id: compile
       uses: vmactions/freebsd-vm@v0.3.1
@@ -184,6 +184,16 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
+      - name: Set up Git user information
+        run: |
+          git config user.name "Miha Kralj"
+          git config user.email "miha.kralj@outlook.com"
+
+      - name: Delete existing beta tag
+        run: |
+          git tag -d beta || true
+          git push origin --delete beta || true
+
       - name: Download all artifacts
         uses: actions/download-artifact@v2
         with:
@@ -194,20 +204,20 @@ jobs:
           ls -l ./bin
         shell: bash
 
-      - name: Remove Existing Beta Tag
-        run: |
-          git tag -d beta || true
-          git push origin :refs/tags/beta || true
-
       - name: Create Beta Release and Upload Assets
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
           prerelease: true
           draft: false
-          tag_name: beta
+          tag_name: ${{ env.VERSION }}
           name: opnsense-cli ${{ env.VERSION }}
           files: ./bin/opnsense*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ needs.linuxwindows.outputs.version }}
+
+      - name: Add beta tag to the new release
+        run: |
+          git tag beta ${{ env.VERSION }}
+          git push origin beta

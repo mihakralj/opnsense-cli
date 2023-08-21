@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	Version    string
+	Version    string = "0.5.0"
 	verbose    int
 	force      bool
 	host       string
@@ -33,6 +33,11 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&force, "force", "f", false, "Accept or bypass checks and prompts")
 	//rootCmd.PersistentFlags().StringVarP(&configfile, "config", "c", "/conf/config.xml", "path to target config.xml")
 
+	rootCmd.Flags().StringVar(&Version, "version", "", "display version of opnsense")
+	rootCmd.SetHelpCommand(&cobra.Command{
+		Hidden: true,
+	})
+
 	cobra.OnInitialize(func() {
 		configfile = "/conf/config.xml"
 		stagingfile = "/conf/staging.xml"
@@ -43,14 +48,19 @@ func init() {
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "opnsense",
-	Short: "opnsense is a CLI to manage and monitor OPNsense firewall configuration, check status, change settings, and execute commands.",
-	Long: `
-Description:
-  opnsense is a command-line utility for managing, configuring, and monitoring OPNsense firewall systems.
-  It facilitates non-GUI administration, both directly in the shell and remotely via an SSH tunnel.
-  All interactions with OPNsense utilize the same mechanisms as the Web GUI,
-  including staged modifications of config.xml and execution of available configd commands.`,
+	Use:   "opnsense [command]",
+	Short: "CLI to manage and monitor OPNsense firewall systems.",
+	Long: `Command Line utility to interact with OPNsense firewall.
+
+opnsense CLI is a command-line utility for managing, configuring, and monitoring OPNsense firewall systems.
+It facilitates non-GUI administration, both locally on the firewall and remotely via an SSH tunnel.
+To avoid entering passwords for each remote call, use 'ssh-add' to add private key to your ssh-agent.`,
+
+	Example: `  opnsense -t admin@192.168.1.1 show system   - Show system information on remote OPNsense
+  opnsense show config interfaces/wan --json  - Show the inerfaces/wan of config.xml in json format
+  opnsense show backup -d2                    - Show backup details 2 levels deep
+  opnsense run firmware reboot -f             - Reboot OPNsense, force (no confirmation)
+  opnsense commit                             - Commit staged changes`,
 
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		return nil
@@ -58,7 +68,8 @@ Description:
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if len(args) == 0 {
-			fmt.Println(cmd.Long)
+			cmd.Help()
+			os.Exit(0)
 		}
 	},
 }

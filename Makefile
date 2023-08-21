@@ -2,7 +2,6 @@
 # run make help for options
 
 # Variables
-VERSION=0.4.0
 GO=go
 BUILD_DIR=build
 BINARY_NAME=opnsense
@@ -28,7 +27,7 @@ help:
 clean:
 	@echo "Cleaning..."
 ifeq ($(OS),Windows_NT)
-	-@rmdir /s /q $(BUILD_DIR)
+	@if exist $(BUILD_DIR) rmdir /s /q $(BUILD_DIR)
 else
 	-@rm -rf $(BUILD_DIR)
 endif
@@ -44,10 +43,10 @@ build: deps
 	@echo "Building..."
 ifeq ($(OS),Windows_NT)
 	@if not exist $(BUILD_DIR) mkdir $(BUILD_DIR)
-	@$(GO) build -ldflags "-X cmd.version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME).exe .
+	@$(GO) build -o $(BUILD_DIR)/$(BINARY_NAME).exe .
 else
 	@mkdir -p $(BUILD_DIR)
-	@$(GO) build -ldflags "-X cmd.version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME) .
+	@$(GO) build -o $(BUILD_DIR)/$(BINARY_NAME) .
 endif
 
 # Run tests
@@ -91,4 +90,3 @@ else
 	@GOOS=freebsd GOARCH=amd64 $(GO) build -o $(BUILD_DIR)/$(BINARY_NAME)-bsd .
 	@echo "FreeBSD binary done"
 endif
-
