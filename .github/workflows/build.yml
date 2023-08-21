@@ -210,7 +210,7 @@ jobs:
         with:
           prerelease: true
           draft: false
-          tag_name: ${{ env.VERSION }}
+          tag_name: beta
           name: opnsense-cli ${{ env.VERSION }}
           files: ./bin/opnsense*
         env:
@@ -219,5 +219,5 @@ jobs:
 
       - name: Add beta tag to the new release
         run: |
-          git tag beta ${{ env.VERSION }}
-          git push origin beta
+          git tag ${{ env.VERSION }}
+          git push origin ${{ env.VERSION }}
