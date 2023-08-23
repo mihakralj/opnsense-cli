@@ -64,14 +64,14 @@ func SetFlags(v int, f bool, h string, config string, nc bool, dpt int, x bool, 
 
 func Log(verbosity int, format string, args ...interface{}) {
 	levels := []string{"",
-		c["red"] + "Error:\t" + c["nil"],
-		c["yel"] + "Warn:\t" + c["nil"],
-		c["grn"] + "Info:\t" + c["nil"],
-		c["blu"] + "Note:\t" + c["nil"],
-		c["wht"] + "Debug:\t" + c["nil"]}
+		c["red"] + "Error:\t " + c["nil"],
+		c["yel"] + "Warning: " + c["nil"],
+		c["grn"] + "Info:\t " + c["nil"],
+		c["blu"] + "Note:\t " + c["nil"],
+		c["wht"] + "Debug:\t " + c["nil"]}
 	message := levels[verbosity] + fmt.Sprintf(format, args...)
 
-	if verbose >= verbosity || verbosity == 1 {
+	if (verbose >= verbosity || verbosity == 1) && verbosity != 2{
 		fmt.Fprintln(os.Stderr, message)
 	}
 	if verbosity == 2 && !force {
@@ -79,7 +79,7 @@ func Log(verbosity int, format string, args ...interface{}) {
 		reader := bufio.NewReader(os.Stdin)
 		response, err := reader.ReadString('\n')
 		if err != nil {
-			Log(1, "internal")
+			Log(1, "error reading input")
 		}
 		response = strings.ToLower(strings.TrimSpace(response))
 		if response == "y" || response == "yes" {

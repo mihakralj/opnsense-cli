@@ -3,6 +3,7 @@ package internal
 import (
 	"bytes"
 	"os/exec"
+	"strings"
 )
 
 func ExecuteCmd(command, host string) (string, error) {
@@ -37,8 +38,9 @@ func ExecuteCmd(command, host string) (string, error) {
 	err = sshClient.Session.Run(command)
 	if err != nil {
 		Log(3, "failed to execute sh command. %s", err.Error())
+		Log(3, "shell returned %s", strings.TrimRight(stdoutBuf.String(), "\n"))
 		return "", err
 	}
-	Log(5, "received results from executed command.")
-	return stdoutBuf.String(), nil
+	Log(5, "received results from executed command: %s", strings.TrimRight(stdoutBuf.String(), "\n"))
+	return strings.TrimRight(stdoutBuf.String(), "\n"), nil
 }

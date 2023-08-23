@@ -9,17 +9,18 @@ import (
 )
 
 var (
-	Version    string = "0.5.0"
-	verbose    int
-	force      bool
-	host       string
-	configfile string
+	Version     string = "0.6.0"
+	verbose     int
+	force       bool
+	host        string
+	configfile  string
 	stagingfile string
-	nocolor    bool
-	depth      int
-	xmlFlag    bool
-	yamlFlag   bool
-	jsonFlag   bool
+	nocolor     bool
+	depth       int
+	xmlFlag     bool
+	yamlFlag    bool
+	jsonFlag    bool
+	ver_flag    bool
 )
 
 func init() {
@@ -33,10 +34,9 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&force, "force", "f", false, "Accept or bypass checks and prompts")
 	//rootCmd.PersistentFlags().StringVarP(&configfile, "config", "c", "/conf/config.xml", "path to target config.xml")
 
-	rootCmd.Flags().StringVar(&Version, "version", "", "display version of opnsense")
-	rootCmd.SetHelpCommand(&cobra.Command{
-		Hidden: true,
-	})
+	rootCmd.Flags().BoolVar(&ver_flag, "version", false, "display version of opnsense")
+
+	rootCmd.SetHelpCommand(&cobra.Command{Hidden: true})
 
 	cobra.OnInitialize(func() {
 		configfile = "/conf/config.xml"
@@ -44,7 +44,6 @@ func init() {
 		internal.SetFlags(verbose, force, host, configfile, nocolor, depth, xmlFlag, yamlFlag, jsonFlag)
 		//other initializations
 	})
-
 }
 
 var rootCmd = &cobra.Command{
@@ -66,6 +65,10 @@ To avoid entering passwords for each remote call, use 'ssh-add' to add private k
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+		if ver_flag {
+			fmt.Println("opnsense-CLI version",Version)
+			os.Exit(0)
+		}
 
 		if len(args) == 0 {
 			cmd.Help()

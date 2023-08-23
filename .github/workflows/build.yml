@@ -181,19 +181,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-
-      - name: Set up Git user information
-        run: |
-          git config user.name "Miha Kralj"
-          git config user.email "miha.kralj@outlook.com"
-
-      - name: Delete existing beta tag
-        run: |
-          git tag -d beta || true
-          git push origin --delete beta || true
-
       - name: Download all artifacts
         uses: actions/download-artifact@v2
         with:
@@ -216,8 +203,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ needs.linuxwindows.outputs.version }}
-
-      - name: Add beta tag to the new release
-        run: |
-          git tag ${{ env.VERSION }}
-          git push origin ${{ env.VERSION }}
