@@ -40,12 +40,6 @@ func getSSHClient(target string) (*SSHClient, error) {
 		host = userhost
 	}
 
-	// try to get config.Auth from sshAgent
-	//   if no identities, skip to password
-	//   try sshDial to get connection
-	//   if failed, skip to password
-	//   try sshDial with password
-
 	var connection *ssh.Client
 
 	if config == nil {
@@ -66,7 +60,7 @@ func getSSHClient(target string) (*SSHClient, error) {
 				}
 			}
 		}
-		fmt.Println("No authorized SSH keys found in local ssh agent, reverting to password-based access.\nTo enable seamless access, use the 'ssh-add' to add the authorized key for user",user)
+		fmt.Println("No authorized SSH keys found in local ssh agent, reverting to password-based access.\nTo enable seamless access, use the 'ssh-add' to add the authorized key for user", user)
 		fmt.Printf("Enter password for %s@%s: ", user, host)
 		bytePassword, err := term.ReadPassword(int(syscall.Stdin))
 		if err != nil {
@@ -88,5 +82,6 @@ func getSSHClient(target string) (*SSHClient, error) {
 		Log(1, "%v", err)
 	}
 	SshClient = &SSHClient{Client: connection}
+
 	return SshClient, nil
 }

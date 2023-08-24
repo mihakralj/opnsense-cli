@@ -5,8 +5,6 @@ package cmd
 
 import (
 	"fmt"
-	"math/rand"
-	"time"
 
 	"github.com/beevik/etree"
 	"github.com/mihakralj/opnsense/internal"
@@ -45,7 +43,7 @@ Example usage:
 		if err != nil {
 			internal.Log(1, "execution error: %s", err.Error())
 		}
-//fmt.Println(backups)
+		//fmt.Println(backups)
 		err = backupdoc.ReadFromString(backups)
 		if err != nil {
 			internal.Log(1, "did not receive XML")
@@ -69,11 +67,4 @@ Example usage:
 
 func init() {
 	showCmd.AddCommand(backupCmd)
-}
-
-func generateBackupFilename() string {
-	timestamp := time.Now().Unix()
-	randomNumber := rand.Intn(10000)
-	filename := fmt.Sprintf("config-%d.%d.xml", timestamp, randomNumber)
-	return filename
 }

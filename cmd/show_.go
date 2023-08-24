@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,8 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -25,12 +23,14 @@ import (
 var showCmd = &cobra.Command{
 	Use:   "show [node]",
 	Short: "Display information related to OPNsense system",
-	Long: `The 'show' command retrieves various details about the OPNsense system:
-- show system <xpath>: Retrieves system information from the firewall.
-- show config <xpath>: Displays hierarchical segments of config.xml.
-- show backup <config>: Lists available backup configs or a specific backup.`,
+	Long: `The 'show' command retrieves various details about the OPNsense system.
+
+Examples:
+  show config <xpath>  - Hierarchical segments of config.xml
+  show system <xpath>  - System information about OPNsense firewall
+  show backup -d2      - Details about files in /conf/backup`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Specify a subcommand such as 'system', 'config', or 'backup'")
+		cmd.Help()
 	},
 }
 

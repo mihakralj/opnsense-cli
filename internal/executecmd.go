@@ -30,6 +30,8 @@ func ExecuteCmd(command, host string) (string, error) {
 			Log(1, "%s", err)
 			return "", err
 		}
+		var stdout bytes.Buffer
+		session.Stdout = &stdout
 		sshClient.Session = session
 	}
 
