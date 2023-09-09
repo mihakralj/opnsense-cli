@@ -52,10 +52,8 @@ opnsense info network/igb0/mtu
 		echo "<os>" && opnsense-version -O | sed -n -e '/{/d' -e '/}/d' -e 's/^[[:space:]]*"product_\([^"]*\)":[[:space:]]*"\([^"]*\)".*/<\1>\2<\/\1>/p' && sysctl kern.ostype kern.osrelease kern.version kern.hostname kern.hostid kern.hostuuid | sed 's/^kern.version:/kern.osversion:/' | awk 'NR>1 && !/^kern.opnversion/ && !NF {next} {print}' | awk -F: '{ gsub(/^kern\./, "", $1); printf "<%s>%s</%s>\n", $1, substr($2, 2), $1 }' && epochtime=$(sysctl kern.boottime | awk '{print $5}' | tr -d ','); now=$(date "+%s"); diff=$((now - epochtime)); days=$((diff / 86400)); hours=$(( (diff % 86400) / 3600)); minutes=$(( (diff % 3600) / 60)); seconds=$((diff % 60)); boottime=$(date -j -r "$epochtime" "+%Y-%m-%d %H:%M:%S"); printf "<boottime>%s</boottime>\n<boottime_epoch>%s</boottime_epoch>\n<uptime>%dd %dh %dm %ds</uptime>\n<uptime_seconds>%s</uptime_seconds>\n" "$boottime" "$epochtime" "$days" "$hours" "$minutes" "$seconds" "$diff" && echo "</os>"
 		echo -e "<storage>" && mount | awk '{print $1}' | grep '^/dev/' | sort | uniq | xargs df -h | awk 'NR>1 {print}' | awk -v OFS='\t' -v disk_num=0 '{split($1, arr, "/"); if (arr[3] == "gpt") arr[3] = "rootfs"; print "<disk" disk_num ">\n\t<name>" arr[3] "</name>\n\t<type>gpt</type>\n\t<size>" $2 "</size>\n\t<used>" $3 "</used>\n\t<free>" $4 "</free>\n\t<capacity>" $5 "</capacity>\n\t</disk" disk_num ">"; disk_num++}' && zpool list | awk 'NR>1 {print}' | awk -v OFS='\t' -v pool_num=0 '{print "<zpool" pool_num ">\n\t<name>" $1 "</name>\n\t<type>zfs</type>\n\t<size>" $2 "</size>\n\t<used>" $3 "</used>\n\t<free>" $4 "</free>\n\t<capacity>" $8 "</capacity>\n</zpool" pool_num ">";pool_num++}' && echo -e"</storage>\n<network>" && ifconfig -a | sed -E 's/metric ([0-9]+)/\n metric: \1/;s/mtu ([0-9]+)/\n mtu: \1/' | sed -E 's/=/: /g; s/<([^>]*)>/ (\1)/g; s/nd6 options/nd6_options/g; s/^([a-zA-Z0-9]+) /\1: /; s/^([[:space:]]+)([a-zA-Z0-9]+)([ \t])/\1\2:\3/' | awk 'BEGIN {ORS=""} /^[a-zA-Z0-9]+: / { if (iface) print "</" iface ">"; iface=$1; sub(/:$/, "", iface); print "\n<" iface ">"; next } { sub(/:$/, "", $1); key=$1; $1=""; gsub(/^ /, ""); printf "\n\t<%s>%s</%s>", key, $0, key } END { if (iface) print "\n</" iface ">"; }' && echo -e '\n</network>\n</system>'
 		echo -e "</system>"`
-		config, err := internal.ExecuteCmd(bash, host)
-		if err != nil {
-			panic(err)
-		}
+		config := internal.ExecuteCmd(bash, host)
+
 		configdoc := etree.NewDocument()
 		configdoc.ReadFromString(config)
 

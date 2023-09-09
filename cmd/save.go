@@ -57,27 +57,20 @@ Examples:
 		internal.Checkos()
 		// check if filename already exists
 		bash := `if [ -f "/conf/backup/` + filename + `" ]; then echo "exists"; fi`
-		fileexists, err := internal.ExecuteCmd(bash, host)
-		if err != nil {
-			internal.Log(1, "execution error: %s", err.Error())
-		}
+		fileexists := internal.ExecuteCmd(bash, host)
+
 		if strings.TrimSpace(fileexists) == "exists" {
 			internal.Log(2, "%s already exists and will be overwritten.", filename)
 			// delete the file
 			bash = "sudo rm /conf/backup/" + filename
-			_, err := internal.ExecuteCmd(bash, host)
-			if err != nil {
-				internal.Log(1, "execution error: %s", err.Error())
-			}
+			internal.ExecuteCmd(bash, host)
+
 		}
 		// read and parse the config.xml file
 		configdoc := etree.NewDocument()
 		bash = "cat /conf/config.xml"
-		config, err := internal.ExecuteCmd(bash, host)
-		if err != nil {
-			internal.Log(1, "execution error: %s", err.Error())
-		}
-		err = configdoc.ReadFromString(config)
+		config := internal.ExecuteCmd(bash, host)
+		err := configdoc.ReadFromString(config)
 		if err != nil {
 			internal.Log(1, "could not parse /conf/config.xml")
 		}
@@ -93,27 +86,19 @@ Examples:
 				end = totalLength
 			}
 			chunk := configout[i:end]
-			//escapedChunk := strconv.Quote(chunk) // This will escape necessary characters
 			bash = fmt.Sprintf(`echo -n '%s' | sudo tee -a /conf/backup/%s`, chunk, filename)
-			_, err = internal.ExecuteCmd(bash, host)
-			if err != nil {
-				internal.Log(1, "ssh execution error: %s", err.Error())
-			}
+			internal.ExecuteCmd(bash, host)
 		}
 
-		// check that file was made
+		// check that file was written
 		bash = `if [ -f "/conf/backup/` + filename + `" ]; then echo "exists"; fi`
-		fileexists, err = internal.ExecuteCmd(bash, host)
-		if err != nil {
-			internal.Log(1, "execution error: %s", err.Error())
-		}
+		fileexists = internal.ExecuteCmd(bash, host)
 
 		if fileexists == "exists" {
 			fmt.Printf("%s has been succesfully saved to /conf/backup.", filename)
 		} else {
 			internal.Log(1, "error writing file %s", filename)
 		}
-
 	},
 }
 

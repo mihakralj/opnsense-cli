@@ -50,10 +50,8 @@ The 'run' command is used to execute specific command that is registered with 'c
 		}
 		internal.Checkos()
 		bash := `echo "<actions>" && for file in /usr/local/opnsense/service/conf/actions.d/actions_*.conf; do service_name=$(basename "$file" | sed 's/actions_\(.*\).conf/\1/'); echo "  <${service_name}>"; awk 'function escape_xml(str) { gsub(/&/, "&amp;", str); gsub(/</, "&lt;", str); gsub(/>/, "&gt;", str); return str; } BEGIN {FS=":"; action = "";} /\[.*\]/ { if (action != "") {print "    </" action ">"} action = substr($0, 2, length($0) - 2); print "    <" action ">";} !/\[.*\]/ && NF > 1 { gsub(/^[ \t]+|[ \t]+$/, "", $2); value = escape_xml($2); print "      <" $1 ">" value "</" $1 ">";} END { if (action != "") {print "    </" action ">"} }' "$file"; echo "  </${service_name}>"; done && echo "</actions>"`
-		config, err := internal.ExecuteCmd(bash, host)
-		if err != nil {
-			panic(err)
-		}
+		config := internal.ExecuteCmd(bash, host)
+
 		configdoc := etree.NewDocument()
 		configdoc.ReadFromString(config)
 		node := configdoc.FindElement(path + "/command")
@@ -67,10 +65,8 @@ The 'run' command is used to execute specific command that is registered with 'c
 			path = strings.Replace(path, "actions/", "", 1)
 			command := "configctl " + regexp.MustCompile(`[/\.]`).ReplaceAllString(path, " ")
 			internal.Log(2, "sending command: %s ", command)
-			ret, err := internal.ExecuteCmd(command, host)
-			if err != nil {
-				panic(err)
-			}
+			ret := internal.ExecuteCmd(command, host)
+
 			var js json.RawMessage
 			if err := json.Unmarshal([]byte(ret), &js); err == nil {
 				var obj interface{}

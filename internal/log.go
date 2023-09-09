@@ -27,6 +27,24 @@ var c = map[string]string{
 	"mgn": "\033[35m",
 	"cyn": "\033[36m",
 	"wht": "\033[37m",
+    "gry": "\033[90m",
+	"dred": "\033[2m\033[31m",
+	"dgrn": "\033[2m\033[32m",
+	"dyel": "\033[2m\033[33m",
+	"dblu": "\033[2m\033[34m",
+	"dmgn": "\033[2m\033[35m",
+	"dcyn": "\033[2m\033[36m",
+	"dwht": "\033[2m\033[37m",
+    "dgry": "\033[2m\033[90m",
+
+    "bred": "\033[91m",
+    "bgrn": "\033[92m",
+    "byel": "\033[93m",
+    "bblu": "\033[94m",
+    "bmgn": "\033[95m",
+    "bcyn": "\033[96m",
+    "bwht": "\033[97m",
+
 	"bgr": "\033[41m",
 	"bgg": "\033[42m",
 	"bgy": "\033[43m",
@@ -34,9 +52,14 @@ var c = map[string]string{
 	"bgm": "\033[45m",
 	"bgc": "\033[46m",
 	"bgw": "\033[47m",
-	"ita": "\033[3m",
-	//"ell": "\u2026",
-	"ell": "...",
+	"ita": "\033[3m", // italics
+	"bld": "\033[1m", // bold
+	"stk": "\033[9m", // strikethroough
+	"und": "\033[4m",
+	"rev": "\033[7m", // reverse colors
+	"ell": "\u2026",
+	//"ell": "...",
+	"arw": " \u2192 ",
 	"nil": "\033[0m",
 }
 
@@ -59,6 +82,7 @@ func SetFlags(v int, f bool, h string, config string, nc bool, dpt int, x bool, 
 			delete(c, key)
 		}
 		c["ell"] = "..."
+		c["arw"] = " -> "
 	}
 }
 

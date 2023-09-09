@@ -47,43 +47,43 @@ var configCmd = &cobra.Command{
 				path = "opnsense/" + path
 			}
 		}
+
 		bash := ""
-		//internal.Checkos()
+		internal.Checkos()
+
 		configdoc := etree.NewDocument()
 		bash = fmt.Sprintf("cat %s", configfile)
-		config, err := internal.ExecuteCmd(bash, host)
-		if err != nil {
-			internal.Log(1, "execution error: %s", err.Error())
-		}
-		err = configdoc.ReadFromString(config)
+		config := internal.ExecuteCmd(bash, host)
+		err := configdoc.ReadFromString(config)
 		if err != nil {
 			internal.Log(1, "%s is not an XML", configfile)
 		}
 
 		stagingdoc := etree.NewDocument()
-		bash = fmt.Sprintf("if [ -f %s ]; then cat %s; else cat %s; fi", stagingfile, stagingfile, configfile)
-		staging, err := internal.ExecuteCmd(bash, host)
-		if err != nil {
-			internal.Log(1, "execution error: %s", err.Error())
+		bash = fmt.Sprintf(`if [ -f %s ]; then cat %s; else echo "missing"; fi`, stagingfile, stagingfile)
+		staging := internal.ExecuteCmd(bash, host)
+		if staging == "missing" {
+			staging = config
 		}
 		err = stagingdoc.ReadFromString(staging)
 		if err != nil {
-			internal.Log(1, "%s is not an XML", stagingfile)
+			internal.Log(1, "%s is not an XML file", stagingfile)
 		}
+
+		deltadoc := internal.DiffXML(configdoc, stagingdoc, true)
 
 		configout := ""
 		if xmlFlag {
-			configout = internal.ConfigToXML(configdoc, path)
+			configout = internal.ConfigToXML(deltadoc, path)
 		} else if jsonFlag {
-			configout = internal.ConfigToJSON(configdoc, path)
+			configout = internal.ConfigToJSON(deltadoc, path)
 		} else if yamlFlag {
-			configout = internal.ConfigToJSON(configdoc, path)
+			configout = internal.ConfigToYAML(deltadoc, path)
 		} else {
-			configout = internal.ConfigToTTY(configdoc, path)
+			configout = internal.ConfigToTTY(deltadoc, path)
 		}
 
 		fmt.Println(configout)
-
 	},
 }
 

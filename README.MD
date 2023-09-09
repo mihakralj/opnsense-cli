@@ -31,7 +31,7 @@ Administrators  typically only two options how to manage the firewall: either th
 - **`compare [<staging.xml>] [<config.xml>]`**: Compares two config files.
 - **`discard [<xpath>]`**: Discards a value (or all changes) in the staging.xml.
 - **`save [<backup.xml>]`**: Creates a new backup.xml.
-- **`load [<backup.xml>]`**: Restores config.xml from a specific backup.xml. (alias: `restore``)
+- **`load [<backup.xml>]`**: Restores config.xml from a specific backup.xml. (alias: `restore`)
 - **`delete <backup.xml>`**: Deletes a specific backup.xml.
 - **`delete age [days]`**: Deletes all backups older than specified days
 - **`delete keep [count]`**: Keeps specified number of backups and deletes the rest

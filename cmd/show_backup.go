@@ -39,12 +39,9 @@ Example usage:
 			print "  <" $2 " age=\"" age "\"><date>" date "</date><size>" $3 "</size><md5>" $4 "</md5></" $2 ">";}
 		END { print "</backups>"; }'`, backupdir)
 
-		backups, err := internal.ExecuteCmd(bash, host)
-		if err != nil {
-			internal.Log(1, "execution error: %s", err.Error())
-		}
-		//fmt.Println(backups)
-		err = backupdoc.ReadFromString(backups)
+		backups := internal.ExecuteCmd(bash, host)
+
+		err := backupdoc.ReadFromString(backups)
 		if err != nil {
 			internal.Log(1, "did not receive XML")
 		}

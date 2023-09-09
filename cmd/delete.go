@@ -70,21 +70,15 @@ Examples:
 				bash = "find /conf/backup -type f -print0 | xargs -0 ls -lt | tail -n "+value+" | awk '{print $NF}'"
 			}
 
-			ret, err := internal.ExecuteCmd(bash+" | wc -l", host)
-			if err != nil {
-				internal.Log(1, "execution error: %s", err.Error())
-			}
+			ret := internal.ExecuteCmd(bash+" | wc -l", host)
+
 			cnt := strings.TrimSpace(ret)
 			if cnt=="0" {
 				fmt.Println("no files meeting criteria")
 				return
 			}
 			internal.Log(2, "deleting %s files from /conf/backup",cnt)
-			ret, err = internal.ExecuteCmd(bash+" | sudo xargs rm", host)
-
-			if err != nil {
-				internal.Log(1, "execution error: %s", err.Error())
-			}
+			ret = internal.ExecuteCmd(bash+" | sudo xargs rm", host)
 			if ret == "" {
 				fmt.Printf("%s files have been deleted.\n", cnt)
 			}
@@ -96,10 +90,8 @@ Examples:
 			}
 			internal.Checkos()
 			bash = `if [ -e "/conf/backup/` + filename + `" ]; then echo "ok"; else echo "missing"; fi`
-			fileexists, err := internal.ExecuteCmd(bash, host)
-			if err != nil {
-				internal.Log(1, "execution error: %s", err.Error())
-			}
+			fileexists := internal.ExecuteCmd(bash, host)
+
 			if strings.TrimSpace(fileexists) == "missing" {
 				internal.Log(1, "file %s not found", filename)
 			}
@@ -107,10 +99,8 @@ Examples:
 			internal.Log(2, "deleting file %s", filename)
 
 			bash = "sudo chmod a+w /conf/backup/" + filename + " && sudo rm -f /conf/backup/" + filename
-			result, err := internal.ExecuteCmd(bash, host)
-			if err != nil {
-				internal.Log(1, "execution error: %s", err.Error())
-			}
+			result := internal.ExecuteCmd(bash, host)
+
 			if result == "" {
 				fmt.Printf("%s has been deleted.\n", filename)
 			}
@@ -120,8 +110,4 @@ Examples:
 
 func init() {
 	rootCmd.AddCommand(deleteCmd)
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// deleteCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
