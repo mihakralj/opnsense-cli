@@ -22,7 +22,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/beevik/etree"
 	"github.com/mihakralj/opnsense/internal"
 	"github.com/spf13/cobra"
 )
@@ -44,61 +43,23 @@ Examples:
 			filename = generateBackupFilename()
 		} else {
 			filename = args[0]
+			filename = strings.TrimPrefix(filename, "/conf/backup/")
+			filename = strings.TrimPrefix(filename, "conf/backup/")
 			if !strings.HasSuffix(filename, ".xml") {
 				filename += ".xml"
 			}
 			validFilenamePattern := "^[a-zA-Z0-9_.-]+$"
 			match, err := regexp.MatchString(validFilenamePattern, filename)
 			if err != nil || !match {
-				internal.Log(1, "%s is not a valid file in /conf/backup.", filename)
+				internal.Log(1, "%s is not a valid filename to save in /conf/backup.", filename)
 			}
 		}
-
+		
+		filename = "/conf/backup/"+filename
 		internal.Checkos()
-		// check if filename already exists
-		bash := `if [ -f "/conf/backup/` + filename + `" ]; then echo "exists"; fi`
-		fileexists := internal.ExecuteCmd(bash, host)
-
-		if strings.TrimSpace(fileexists) == "exists" {
-			internal.Log(2, "%s already exists and will be overwritten.", filename)
-			// delete the file
-			bash = "sudo rm /conf/backup/" + filename
-			internal.ExecuteCmd(bash, host)
-
-		}
-		// read and parse the config.xml file
-		configdoc := etree.NewDocument()
-		bash = "cat /conf/config.xml"
-		config := internal.ExecuteCmd(bash, host)
-		err := configdoc.ReadFromString(config)
-		if err != nil {
-			internal.Log(1, "could not parse /conf/config.xml")
-		}
-
-		configout := internal.ConfigToXML(configdoc, "opnsense")
-
-		// chunking the long config.xml to upload in pieces
-		chunkSize := 200000
-		totalLength := len(configout)
-		for i := 0; i < totalLength; i += chunkSize {
-			end := i + chunkSize
-			if end > totalLength {
-				end = totalLength
-			}
-			chunk := configout[i:end]
-			bash = fmt.Sprintf(`echo -n '%s' | sudo tee -a /conf/backup/%s`, chunk, filename)
-			internal.ExecuteCmd(bash, host)
-		}
-
-		// check that file was written
-		bash = `if [ -f "/conf/backup/` + filename + `" ]; then echo "exists"; fi`
-		fileexists = internal.ExecuteCmd(bash, host)
-
-		if fileexists == "exists" {
-			fmt.Printf("%s has been succesfully saved to /conf/backup.", filename)
-		} else {
-			internal.Log(1, "error writing file %s", filename)
-		}
+		configdoc := internal.LoadXMLFile(configfile, host)
+		internal.SaveXMLFile(filename, configdoc, host, false)
+		fmt.Printf("Copy of %s saved to %s\n", configfile, filename)
 	},
 }
 

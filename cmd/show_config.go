@@ -16,11 +16,9 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 
-	"github.com/beevik/etree"
 	"github.com/mihakralj/opnsense/internal"
 	"github.com/spf13/cobra"
 )
@@ -48,42 +46,17 @@ var configCmd = &cobra.Command{
 			}
 		}
 
-		bash := ""
 		internal.Checkos()
 
-		configdoc := etree.NewDocument()
-		bash = fmt.Sprintf("cat %s", configfile)
-		config := internal.ExecuteCmd(bash, host)
-		err := configdoc.ReadFromString(config)
-		if err != nil {
-			internal.Log(1, "%s is not an XML", configfile)
-		}
-
-		stagingdoc := etree.NewDocument()
-		bash = fmt.Sprintf(`if [ -f %s ]; then cat %s; else echo "missing"; fi`, stagingfile, stagingfile)
-		staging := internal.ExecuteCmd(bash, host)
-		if staging == "missing" {
-			staging = config
-		}
-		err = stagingdoc.ReadFromString(staging)
-		if err != nil {
-			internal.Log(1, "%s is not an XML file", stagingfile)
+		configdoc := internal.LoadXMLFile(configfile, host)
+		stagingdoc := internal.LoadXMLFile(stagingfile, host)
+		if stagingdoc.Root() == nil {
+			stagingdoc = configdoc
 		}
 
 		deltadoc := internal.DiffXML(configdoc, stagingdoc, true)
+		internal.PrintDocument(deltadoc, path)
 
-		configout := ""
-		if xmlFlag {
-			configout = internal.ConfigToXML(deltadoc, path)
-		} else if jsonFlag {
-			configout = internal.ConfigToJSON(deltadoc, path)
-		} else if yamlFlag {
-			configout = internal.ConfigToYAML(deltadoc, path)
-		} else {
-			configout = internal.ConfigToTTY(deltadoc, path)
-		}
-
-		fmt.Println(configout)
 	},
 }
 

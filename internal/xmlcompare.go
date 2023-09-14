@@ -80,14 +80,11 @@ func addMissingElements(newEl *etree.Element, oldDoc *etree.Document) {
 			oldEl := etree.NewElement(fmt.Sprintf("new:%s", newEl.Tag))
 			oldEl.SetText(newEl.Text())
 			copyAttributes(newEl, oldEl)
-			markParentSpace(newEl)
 
-			// Add new comment if it exists in newEl
-			newCommentStr := getCommentString(newEl)
-			if newCommentStr != "" {
-				oldEl.AddChild(etree.NewComment("new:" + newCommentStr))
-			}
 			parentInOldDoc.AddChild(oldEl)
+			addedchild := parentInOldDoc.Child[len(parentInOldDoc.Child)-1]
+
+			markParentSpace(addedchild.(*etree.Element))
 		}
 	}
 
@@ -111,12 +108,14 @@ func copyAttributes(oldEl, newEl *etree.Element) {
 			if newAttr.Value != oldAttr.Value {
 				// Different value, add chg: in front of attribute name
 				newEl.RemoveAttr(oldAttr.Key)
-				newEl.CreateAttr(fmt.Sprintf("chg:%s", oldAttr.Key), fmt.Sprintf("%s|||%s", oldAttr.Value, newAttr.Value))
+				newEl.CreateAttr(fmt.Sprintf("chg:%s", oldAttr.Key), fmt.Sprintf("%s|||%s", newAttr.Value, oldAttr.Value))
+				markParentSpace(newEl)
 			}
 			// If same value, do nothing
 		} else {
 			// Attribute does not exist in newEl, add with namespace del:
-			newEl.CreateAttr(fmt.Sprintf("del:%s", oldAttr.Key), oldAttr.Value)
+			newEl.CreateAttr(fmt.Sprintf("new:%s", oldAttr.Key), oldAttr.Value)
+			markParentSpace(newEl)
 		}
 	}
 
@@ -130,7 +129,8 @@ func copyAttributes(oldEl, newEl *etree.Element) {
 		if oldAttr == nil {
 			// Attribute does not exist in oldEl, add with namespace new:
 			newEl.RemoveAttr(newAttr.Key)
-			newEl.CreateAttr(fmt.Sprintf("new:%s", newAttr.Key), newAttr.Value)
+			newEl.CreateAttr(fmt.Sprintf("del:%s", newAttr.Key), strings.TrimSpace(newAttr.Value))
+			markParentSpace(newEl)
 		}
 		// If attribute exists in oldEl, it has already been handled
 	}
@@ -151,7 +151,6 @@ func EnumerateListElements(el *etree.Element) {
 			var index = 1
 			for _, child := range childElements {
 				if child.Tag == tag {
-					child.CreateAttr("xmldiff.name", tag)
 					child.Tag = fmt.Sprintf("%s.%d", tag, index)
 					index++
 				}
@@ -168,12 +167,17 @@ func EnumerateListElements(el *etree.Element) {
 }
 
 func ReverseEnumerateListElements(el *etree.Element) {
-	for _, child := range el.ChildElements() {
-		if attr := child.SelectAttr("xmldiff.name"); attr != nil {
-			child.Tag = attr.Value
-			child.RemoveAttr("xmldiff.name")
+	childElements := el.ChildElements()
+
+	// Iterate over child elements
+	for _, child := range childElements {
+		// Check if the tag contains a dot
+		if strings.Contains(child.Tag, ".") {
+			// Split the tag on the dot and take the first part
+			parts := strings.Split(child.Tag, ".")
+			child.Tag = parts[0]
 		}
-		// Recursively call reverseEnumerateListElements to handle deeper levels of the tree
+		// Recursively call the function on the child
 		ReverseEnumerateListElements(child)
 	}
 }
@@ -221,7 +225,7 @@ func markParentSpace(el *etree.Element) {
 		return
 	}
 	parent := el.Parent()
-	if parent != nil {
+	if parent != nil && parent.Space == "" {
 		parent.Space = "att"
 		markParentSpace(parent)
 	}

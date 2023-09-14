@@ -16,10 +16,8 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"strings"
 
-	"github.com/beevik/etree"
 	"github.com/mihakralj/opnsense/internal"
 	"github.com/spf13/cobra"
 )
@@ -76,41 +74,15 @@ Examples:
 			path = "opnsense/" + path
 		}
 
-		bash := ""
 		internal.Checkos()
-
-		olddoc := etree.NewDocument()
-		bash = fmt.Sprintf("cat %s", oldconfig)
-		oldconfigstr := internal.ExecuteCmd(bash, host)
-		err := olddoc.ReadFromString(oldconfigstr)
-		if err != nil {
-			internal.Log(1, "%s is not an XML file", oldconfig)
+		olddoc := internal.LoadXMLFile(oldconfig, host)
+		newdoc := internal.LoadXMLFile(newconfig, host)
+		if newdoc.Root() == nil {
+			newdoc = olddoc
 		}
-
-		newdoc := etree.NewDocument()
-		bash = fmt.Sprintf("cat %s", newconfig)
-		newconfigstr := internal.ExecuteCmd(bash, host)
-		err = newdoc.ReadFromString(newconfigstr)
-		if err != nil {
-			internal.Log(1, "%s is not an XML file", newconfig)
-		}
-
-		fmt.Println(oldconfig, "->", newconfig, path)
-
 		deltadoc := internal.DiffXML(olddoc, newdoc, true)
+		internal.PrintDocument(deltadoc, path)
 
-		configout := ""
-		if xmlFlag {
-			configout = internal.ConfigToXML(deltadoc, path)
-		} else if jsonFlag {
-			configout = internal.ConfigToJSON(deltadoc, path)
-		} else if yamlFlag {
-			configout = internal.ConfigToYAML(deltadoc, path)
-		} else {
-			configout = internal.ConfigToTTY(deltadoc, path)
-		}
-
-		fmt.Println(configout)
 	},
 }
 

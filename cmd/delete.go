@@ -50,7 +50,7 @@ Examples:
 		switch filename {
 		case "age", "keep", "trim":
 			if len(args) < 2 {
-				internal.Log(1, "missing required value")
+				internal.Log(1, "missing required value for %s",filename)
 				return
 			}
 

@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	Version     string = "0.8.0"
+	Version     string = "0.9.0"
 	verbose     int
 	force       bool
 	host        string

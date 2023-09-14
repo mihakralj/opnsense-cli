@@ -42,6 +42,7 @@ func ConfigToXML(doc *etree.Document, path string) string {
 	focused := FocusEtree(doc, path)
 	newDoc := etree.NewDocument()
 	newDoc.CreateProcInst("xml", `version="1.0" encoding="UTF-8"`)
+	//newDoc.CreateComment("XPath: " + path)
 	newDoc.SetRoot(focused)
 	newDoc.Indent(2)
 	xmlStr, err := newDoc.WriteToString()

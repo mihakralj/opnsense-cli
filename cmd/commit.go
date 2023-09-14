@@ -43,20 +43,23 @@ Examples:
 		bash := `if [ -f "` + stagingfile + `" ]; then echo "exists"; fi`
 		fileexists := internal.ExecuteCmd(bash, host)
 		if strings.TrimSpace(fileexists) != "exists" {
-			internal.Log(1, "no staging.xml detected.")
+			internal.Log(1, "no staging.xml detected - nothing to commit.")
 		}
 		internal.Log(2,"modifying "+configfile)
-		// move config.xml to /conf/backup dir
+
+		// copy config.xml to /conf/backup dir
 		backupname := generateBackupFilename()
-		bash = `sudo mv -f ` + configfile + ` /conf/backup/` + backupname + ` && sudo mv -f /conf/staging.xml `+configfile
+		bash = `sudo cp -f ` + configfile + ` /conf/backup/` + backupname + ` && sudo mv -f /conf/staging.xml `+configfile
 		//internal.ExecuteCmd(bash, host)
 		fmt.Println(bash)
+		
 		bash = `if [ -f "` + configfile + `" ]; then echo "ok"; else echo "error"; fi`
 		fileexists = internal.ExecuteCmd(bash, host)
 		if fileexists == "ok" {
 			bash = ``
 		} else {
 			//error
+			bash = ``
 		}
 		// config reload - full or partial?
 
