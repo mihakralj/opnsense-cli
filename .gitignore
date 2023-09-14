@@ -2,3 +2,5 @@ opnsense.exe
 
 test/
 build/
+
+dist/
