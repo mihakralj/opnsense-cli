@@ -1,11 +1,13 @@
-#!/bin/bash
+#!/bin/sh
 
-GOARCH=amd64
-GOOS=freebsd
 mkdir -p ./dist/pkg/usr/local/bin
-go build -ldflags="-w" -o ./dist/pkg/usr/local/bin/opnsense opnsense.go
+export GOARCH=amd64
+export GOOS=freebsd
+export GOCACHE=~/Github/opnsense-cli/dist/pkg/cache
+go mod vendor
+go build -trimpath -ldflags "-w -s" -mod=vendor -o ./dist/pkg/usr/local/bin/opnsense opnsense.go
 chmod +x ./dist/pkg/usr/local/bin/opnsense
-SHA=$(sha256sum ./dist/pkg/usr/local/bin/opnsense | awk '{ print $1 }')
+SHA=$(shasum -a 256 ./dist/pkg/usr/local/bin/opnsense | awk '{ print $1 }')
 
 VERSION=$1
 FLATSIZE=$(du -b -s ./dist/pkg/usr/local/bin | cut -f1)
@@ -37,4 +39,4 @@ echo -e "\"abi\": \"FreeBSD:*:amd64\"," >> $MANIFEST
 echo -e "}" >> $MANIFEST
 
 cd ./dist/pkg
-tar --absolute-names -cJf ../opnsense-cli-${VERSION}.txz -C . +MANIFEST +COMPACT_MANIFEST /usr/local/bin/opnsense
+tar -cJf ../opnsense-cli-${VERSION}.txz -s'|^\./|/|' -P +MANIFEST +COMPACT_MANIFEST ./usr/local/bin/opnsense
