@@ -90,5 +90,4 @@ The 'run' command is used to execute specific command that is registered with 'c
 
 func init() {
 	rootCmd.AddCommand(runCmd)
-	// Here you will define your flags and configuration settings.
 }

@@ -50,9 +50,10 @@ Always use discard command with caution to avoid losing uncommitted work.`,
 		if stagingdoc.Root() == nil {
 			stagingdoc = configdoc
 		}
-		path := "opensense"
+		path := "opnsense"
 
 		if len(args) < 1 {
+			internal.Log(2, "Discarding all staged configuration changes.")
 			stagingdoc = configdoc
 		} else {
 			trimmedArg := strings.Trim(args[0], "/")

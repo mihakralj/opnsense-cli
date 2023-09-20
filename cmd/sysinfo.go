@@ -13,11 +13,11 @@ import (
 )
 
 // systemCmd represents the status command
-var systemCmd = &cobra.Command{
-	Use:   "system [node]",
-	Short: "Retrieves system information",
+var sysinfoCmd = &cobra.Command{
+	Use:   "sysinfo [node]",
+	Short: "Retrieves system information - hardware, OS, storage, network",
 	Long: `
-Info command provides a comprehensive overview of the OPNsense's current state.
+Sysinfo command provides a comprehensive overview of the OPNsense's current state.
 The output is divided into multiple branches, each offering details about different aspects of the system:
 
 - hardware: Presents details about the system's hardware, including the CPU, memory and recognized disks.
@@ -26,9 +26,9 @@ The output is divided into multiple branches, each offering details about differ
 - network: Lists all network interfaces available on the system.
 
 you can use xpath to dive deeper into the result tree:
-opnsense info hardware
-opnsense info storage/disk0
-opnsense info network/igb0/mtu
+opnsense sysinfo hardware
+opnsense sysinfo storage/disk0
+opnsense sysinfo network/igb0/mtu
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		if changed := cmd.Flags().Changed("depth"); !changed {
@@ -72,5 +72,6 @@ opnsense info network/igb0/mtu
 }
 
 func init() {
-	showCmd.AddCommand(systemCmd)
+	sysinfoCmd.Flags().IntVarP(&depth, "depth", "d", 1, "Specifies number of levels of returned tree (1-5)")
+	rootCmd.AddCommand(sysinfoCmd)
 }

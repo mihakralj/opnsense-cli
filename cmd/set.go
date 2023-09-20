@@ -17,9 +17,14 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 
+	"github.com/mihakralj/opnsense/internal"
 	"github.com/spf13/cobra"
 )
+
+var deleteFlag bool = false
 
 // setCmd represents the set command
 var setCmd = &cobra.Command{
@@ -38,57 +43,95 @@ Examples:
 Make sure to validate your XPath expressions to avoid any unintended changes.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		cmd.Help()
+		internal.Checkos()
 
-		fmt.Println("\n\033[34mSet command is not implemented yet\033[0m")
+		configdoc := internal.LoadXMLFile(configfile, host)
+		stagingdoc := internal.LoadXMLFile(stagingfile, host)
+		if stagingdoc.Root() == nil {
+			stagingdoc = configdoc
+		}
 
-		// capture args
-		//read and parse staging doc
-		// modify the branch according to args
-		// write to staging.xml
-		// check that staging.xml was written
+		if len(args) == 0 {
+			internal.Log(1, "XPath not provided")
+			return
+		}
 
-		/*
-			internal.Checkos()
+		path := strings.Trim(args[0], "/")
+		if !strings.HasPrefix(path, "opnsense/") {
+			path = "opnsense/" + path
+		}
+		if matched, _ := regexp.MatchString(`\[0\]`, path); matched {
+			internal.Log(1, "XPath indexing of elements starts with 1, not 0")
+			return
+		}
 
-			//read and parse staging doc
-			stagingdoc := etree.NewDocument()
-			bash := fmt.Sprintf(`if [ -f %s ]; then cat %s; else cat %s; fi`, stagingfile, stagingfile, configfile)
-			staging := internal.ExecuteCmd(bash, host)
-			err := stagingdoc.ReadFromString(staging)
-			if err != nil {
-				internal.Log(1, "%s is not an XML", stagingfile)
-			}
+		var attribute, value string
 
-			// modify the branch according to args
-
-			// write/append to staging.xml
-			internal.ExecuteCmd(fmt.Sprintf(`sudo rm -fv %s`, stagingfile), host)
-			stagingout := internal.ConfigToXML(stagingdoc, "opnsense")
-			chunkSize := 200000
-			totalLength := len(stagingout)
-			for i := 0; i < totalLength; i += chunkSize {
-				end := i + chunkSize
-				if end > totalLength {
-					end = totalLength
-				}
-				chunk := stagingout[i:end]
-				bash = fmt.Sprintf(`echo -n '%s' | sudo tee -a %s`, chunk, stagingfile)
-				internal.ExecuteCmd(bash, host)
-			}
-
-			// check that staging.xml was written
-			bash = `if [ -f "` + stagingfile + `" ]; then echo "exists"; fi`
-			fileexists := internal.ExecuteCmd(bash, host)
-			if fileexists == "exists" {
-				fmt.Printf("%s has been succesfully saved. ", stagingfile)
+		if len(args) == 2 {
+			if isAttribute(args[1]) {
+				attribute = args[1]
 			} else {
-				internal.Log(1, "error writing file %s", stagingfile)
+				value = strings.Trim(args[1], " ")
 			}
-		*/
+
+		}
+		if len(args) == 3 {
+			if isAttribute(args[1]) {
+				attribute = args[1]
+				if !isAttribute((args[2])) {
+					value = strings.Trim(args[2], " ")
+				} else {
+					internal.Log(1, "Too many attributes provided")
+				}
+			} else {
+				value = strings.Trim(args[1], " ")
+				if isAttribute(args[2]) {
+					attribute = args[2]
+				} else {
+					internal.Log(1, "Too many values provided")
+				}
+			}
+		}
+
+		element := stagingdoc.FindElement(path)
+
+		if element != nil {
+			element.SetText(value)
+		} else {
+			element := stagingdoc.Root()
+			parts := strings.Split(path, "/")
+			for i, part := range parts {
+				if i == 0 && part == "opnsense" {
+					continue
+				}
+				if element.SelectElement(part) == nil && !deleteFlag {
+					element.CreateElement(part)
+				}
+				element = element.SelectElement(part)
+			}
+			if deleteFlag {
+				element.Parent().RemoveChild(element)
+			} else {
+				element.SetText(value)
+			}
+		}
+		deltadoc := internal.DiffXML(configdoc, stagingdoc, true)
+		internal.PrintDocument(deltadoc, path)
+
+		internal.SaveXMLFile(stagingfile, stagingdoc, host, false)
+
+		fmt.Printf("Path: %s\t Attribute: %s\t Value: %s\n", path, attribute, value)
+
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(setCmd)
+	setCmd.Flags().BoolVarP(&deleteFlag, "delete", "d", false, "Delete a node")
+
+}
+
+func isAttribute(s string) bool {
+	re := regexp.MustCompile(`^\([^=]+=[^=]+\)$`)
+	return re.MatchString(s)
 }

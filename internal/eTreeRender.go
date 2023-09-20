@@ -61,11 +61,11 @@ func EtreeToTTY(el *etree.Element, level int, indent int) string {
 
 	switch el.Space {
 	case "att":
-		linePrefix = c["blu"] + "!   "
+		linePrefix = c["chg"] + "!   "
 	case "new":
 		linePrefix = c["grn"] + "+   "
 	case "chg":
-		linePrefix = c["blu"] + "~   "
+		linePrefix = c["chg"] + "~   "
 	case "del":
 		linePrefix = c["red"] + "-   "
 	default:

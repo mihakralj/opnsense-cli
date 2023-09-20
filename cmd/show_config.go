@@ -61,5 +61,6 @@ var configCmd = &cobra.Command{
 }
 
 func init() {
+	configCmd.Flags().IntVarP(&depth, "depth", "d", 1, "Specifies number of levels of returned tree (1-5)")
 	showCmd.AddCommand(configCmd)
 }

@@ -28,7 +28,7 @@ import (
 var loadCmd = &cobra.Command{
 	Use:     "load [<backup.xml>]",
 	Aliases: []string{"restore", "revert"},
-	Short:   "Restores the firewall's active configuration from the most recent or from a specific backup file.",
+	Short:   "Restores the firewall's active configuration from a backup file.",
 	Long: `The 'load' command enables you to restore the active configuration of the OPNsense firewall system from a specified backup file located in the /conf/backup directory. If no filename is provided, the most recent backup will be loaded into config.xml.
 Command has aliases 'restore' and 'revert' .
 

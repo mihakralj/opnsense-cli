@@ -9,14 +9,14 @@ import (
 )
 
 var (
-	Version     string = "0.9.0"
+	Version     string = "0.10.0"
 	verbose     int
 	force       bool
 	host        string
 	configfile  string
 	stagingfile string
 	nocolor     bool
-	depth       int
+	depth       int = 1
 	xmlFlag     bool
 	yamlFlag    bool
 	jsonFlag    bool
@@ -27,13 +27,11 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&host, "target", "t", "", "Target host (-t user@hostname[:port])")
 	rootCmd.PersistentFlags().IntVarP(&verbose, "verbose", "v", 1, "Set verbosity level (1-5)")
 	rootCmd.PersistentFlags().BoolVarP(&nocolor, "no-color", "n", false, "Turn off ANSI colored output")
-	rootCmd.PersistentFlags().IntVarP(&depth, "depth", "d", 1, "Specifies number of levels of returned tree (1-5)")
+	//rootCmd.PersistentFlags().IntVarP(&depth, "depth", "d", 1, "Specifies number of levels of returned tree (1-5)")
 	rootCmd.PersistentFlags().BoolVar(&xmlFlag, "xml", false, "Output in XML format")
 	rootCmd.PersistentFlags().BoolVar(&jsonFlag, "json", false, "Output in JSON format")
 	rootCmd.PersistentFlags().BoolVar(&yamlFlag, "yaml", false, "Output in YAML format")
 	rootCmd.PersistentFlags().BoolVarP(&force, "force", "f", false, "Accept or bypass checks and prompts")
-	//rootCmd.PersistentFlags().StringVarP(&configfile, "config", "c", "/conf/config.xml", "path to target config.xml")
-
 	rootCmd.Flags().BoolVar(&ver_flag, "version", false, "display version of opnsense")
 
 	rootCmd.SetHelpCommand(&cobra.Command{Hidden: true})
@@ -55,18 +53,18 @@ opnsense CLI is a command-line utility for managing, configuring, and monitoring
 It facilitates non-GUI administration, both locally on the firewall and remotely via an SSH tunnel.
 To avoid entering passwords for each remote call, use 'ssh-add' to add private key to your ssh-agent.`,
 
-	Example: `  opnsense -t admin@192.168.1.1 show system   - Show system information on remote OPNsense
-  opnsense show config interfaces/wan --json  - Show the inerfaces/wan of config.xml in json format
-  opnsense show backup -d2                    - Show backup details 2 levels deep
-  opnsense run firmware reboot -f             - Reboot OPNsense, force (no confirmation)
-  opnsense commit                             - Commit staged changes`,
+	Example: `  opnsense show interfaces/wan       - Show the inerfaces/wan of config.xml in json format
+  opnsense sysinfo                   - Show system information on remote OPNsense
+  opnsense backup                    - Show backup files and their age
+  opnsense run firmware reboot -f    - Reboot OPNsense, force (no confirmation)
+  opnsense commit                    - Commit staged changes`,
 
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if ver_flag {
-			fmt.Println("opnsense-CLI version",Version)
+			fmt.Println("opnsense-CLI version", Version)
 			os.Exit(0)
 		}
 

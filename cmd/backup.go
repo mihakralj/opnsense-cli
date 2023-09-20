@@ -63,5 +63,6 @@ Example usage:
 }
 
 func init() {
-	showCmd.AddCommand(backupCmd)
+	backupCmd.Flags().IntVarP(&depth, "depth", "d", 1, "Specifies number of levels of returned tree (1-5)")
+	rootCmd.AddCommand(backupCmd)
 }

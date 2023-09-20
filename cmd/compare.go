@@ -87,5 +87,6 @@ Examples:
 }
 
 func init() {
+	compareCmd.Flags().IntVarP(&depth, "depth", "d", 1, "Specifies number of levels of returned tree (1-5)")
 	rootCmd.AddCommand(compareCmd)
 }

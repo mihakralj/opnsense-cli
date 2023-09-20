@@ -21,7 +21,7 @@ import (
 
 // showCmd represents the show command
 var showCmd = &cobra.Command{
-	Use:   "show [node]",
+	Use:   "show [segment]",
 	Short: "Display information related to OPNsense system",
 	Long: `The 'show' command retrieves various details about the OPNsense system.
 
@@ -30,20 +30,12 @@ Examples:
   show system <xpath>  - System information about OPNsense firewall
   show backup -d2      - Details about files in /conf/backup`,
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		//cmd.Help()
+		configCmd.Run(cmd, args)
 	},
 }
 
 func init() {
+	showCmd.Flags().IntVarP(&depth, "depth", "d", 1, "Specifies number of levels of returned tree (1-5)")
 	rootCmd.AddCommand(showCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// showCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// showCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

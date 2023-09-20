@@ -9,42 +9,21 @@ import (
 
 var c = map[string]string{
 	"tag": "\033[0m",
-	"txt": "\033[36m",
-	"atr": "\033[35m",
-	"new": "\033[32m",
+	"txt": "\033[33m",
+	"atr": "\033[33m",
 
-	"red":  "\033[31m",
-	"grn":  "\033[32m",
+	"chg": "\033[35m",
+	"new": "\033[32m",
+	"red": "\033[31m",
+	"grn": "\033[32m",
+
 	"yel":  "\033[33m",
 	"blu":  "\033[34m",
 	"mgn":  "\033[35m",
 	"cyn":  "\033[36m",
 	"wht":  "\033[37m",
 	"gry":  "\033[90m",
-	"dred": "\033[2m\033[31m",
-	"dgrn": "\033[2m\033[32m",
-	"dyel": "\033[2m\033[33m",
-	"dblu": "\033[2m\033[34m",
-	"dmgn": "\033[2m\033[35m",
-	"dcyn": "\033[2m\033[36m",
-	"dwht": "\033[2m\033[37m",
-	"dgry": "\033[2m\033[90m",
 
-	"bred": "\033[91m",
-	"bgrn": "\033[92m",
-	"byel": "\033[93m",
-	"bblu": "\033[94m",
-	"bmgn": "\033[95m",
-	"bcyn": "\033[96m",
-	"bwht": "\033[97m",
-
-	"bgr": "\033[41m",
-	"bgg": "\033[42m",
-	"bgy": "\033[43m",
-	"bgb": "\033[44m",
-	"bgm": "\033[45m",
-	"bgc": "\033[46m",
-	"bgw": "\033[47m",
 	"ita": "\033[3m", // italics
 	"bld": "\033[1m", // bold
 	"stk": "\033[9m", // strikethroough
@@ -84,7 +63,8 @@ func Log(verbosity int, format string, args ...interface{}) {
 		if response == "y" || response == "yes" {
 			return
 		} else {
-			Log(1, "canceled action")
+			fmt.Fprintln(os.Stderr, "action canceled")
+			os.Exit(1)
 		}
 	}
 	if verbosity == 1 {
