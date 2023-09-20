@@ -1,28 +1,27 @@
 before:
   hooks:
-    # You may remove this if you don't use go modules.
     - go mod tidy
-    # you may remove this if you don't need go generate
     - go generate ./...
+
 builds:
   - env:
-      - CGO_ENABLED=0
+      - GOARCH=amd64
+      - GOOS=freebsd
+    binary: opnsense
     goos:
-      - freebsd
       - linux
-      - windows
-      - darwin
+    goarch:
+      - amd64
+    hooks:
+      post:
+        - ./.github/make_manifest.sh {{.Version}}
 
 checksum:
   name_template: 'checksums.txt'
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
-changelog:
-  sort: asc
-  filters:
-    exclude:
-      - '^docs:'
-      - '^test:'
+  name_template: "{{ incpatch .Version }}"
+
+
 
 # The lines beneath this are called `modelines`. See `:help modeline`
 # Feel free to remove those if you don't want/use them.
