@@ -16,6 +16,7 @@ func DiffXML(oldDoc, newDoc *etree.Document, compare bool) *etree.Document {
 	checkElements(oldDoc.Root(), newDoc)
 
 	ReverseEnumerateListElements(oldDoc.Root())
+	ReverseEnumerateListElements(newDoc.Root())
 
 	return oldDoc
 }

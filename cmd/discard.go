@@ -67,15 +67,23 @@ Always use discard command with caution to avoid losing uncommitted work.`,
 			if parts[0] != "opnsense" {
 				path = "opnsense/" + path
 			}
-
 			configElement := configdoc.FindElement(path)
 			stagingElement := stagingdoc.FindElement(path)
-			stagingParent := stagingElement.Parent()
-			stagingParent.RemoveChild(stagingElement)
-			stagingParent.AddChild(configElement.Copy())
 
+			if stagingElement != nil {
+				if configElement != nil {
+					stagingParent := stagingElement.Parent()
+					stagingParent.RemoveChild(stagingElement)
+					stagingParent.AddChild(configElement.Copy())
+				} else {
+					stagingParent := stagingElement.Parent()
+					stagingParent.RemoveChild(stagingElement)
+				}
+			} else {
+				stagingdoc.Root().AddChild(configElement.Copy())
+			}
 		}
-		internal.SaveXMLFile(stagingfile, stagingdoc, host, false)
+		internal.SaveXMLFile(stagingfile, stagingdoc, host, true)
 		fmt.Printf("Discarded staged changes in %s\n", path)
 
 	},

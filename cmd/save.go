@@ -29,7 +29,7 @@ import (
 // saveCmd represents the save command
 var saveCmd = &cobra.Command{
 	Use:   "save [filename]",
-	Short: "Creates a new backup of the current firewall configuration in /conf/backup directory.",
+	Short: "Creates a new backup configuration in /conf/backup directory.",
 	Long: `The 'save' command parses existing configuration and generates a copy in /conf/backup directory.
 
 Examples:
@@ -54,7 +54,7 @@ Examples:
 				internal.Log(1, "%s is not a valid filename to save in /conf/backup.", filename)
 			}
 		}
-		
+
 		filename = "/conf/backup/"+filename
 		internal.Checkos()
 		configdoc := internal.LoadXMLFile(configfile, host)

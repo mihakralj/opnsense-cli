@@ -25,7 +25,7 @@ import (
 // compareCmd represents the compare command
 var compareCmd = &cobra.Command{
 	Use:   "compare [<original.xml>] [<modified.xml>]",
-	Short: "Compares two configuration files to identify and highlight differences between them.",
+	Short: "Compares two configuration files to identify differences.",
 	Long: `The 'compare' command is designed to help identify differences between two XML configuration
 files. When only one filename.xml is provided, 'compare' shows diff from that file to current config.xml.
 When no filenames are provided, 'compare' shows diff from current config.xml to staging.xml.

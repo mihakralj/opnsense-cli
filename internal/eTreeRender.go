@@ -9,18 +9,19 @@ import (
 )
 
 func FocusEtree(doc *etree.Document, path string) *etree.Element {
-	foundElement := doc.FindElement(path)
+	foundElements := doc.FindElements(path)
+	foundElement := foundElements[len(foundElements)-1]
 	if foundElement == nil {
 		Log(1, "Xpath element \"%s\" does not exist", path)
 		return nil
 	}
+	//fmt.Println(path, "elements: ", len(foundElements))
 
 	parts := strings.Split(path, "/")
 	focused := etree.NewElement(parts[0])
 
 	// Get the space of the found element
 	space := foundElement.Space
-
 	depth := len(parts)
 	if depth > 1 {
 		parts = parts[:depth-1]
@@ -61,28 +62,30 @@ func EtreeToTTY(el *etree.Element, level int, indent int) string {
 
 	switch el.Space {
 	case "att":
-		linePrefix = c["chg"] + "!   "
+		linePrefix = c["chg"] + "!" + c["nil"] + "   " + c["chg"]
 	case "new":
-		linePrefix = c["grn"] + "+   "
+		linePrefix = c["grn"] + "+" + c["nil"] + "   "
+		indentation = indentation + c["grn"]
 	case "chg":
-		linePrefix = c["chg"] + "~   "
+		linePrefix = c["chg"] + "~" + c["nil"] + "   " + c["chg"]
 	case "del":
-		linePrefix = c["red"] + "-   "
+		linePrefix = c["del"] + "-" + c["nil"] + "   "
+		indentation = indentation + c["del"]
 	default:
-		linePrefix = c["tag"] + "    "
+		linePrefix = c["tag"] + " " + c["nil"] + "   " + c["tag"]
 	}
 
 	var attributestr, chgstr string
 	for _, attr := range el.Attr {
 		switch {
 		case attr.Space == "new":
-			attributestr += c["ita"] + c["new"] + fmt.Sprintf(" (%s=\"%s\")", attr.Key, attr.Value)
+			attributestr += " " + c["ita"] + c["new"] + fmt.Sprintf("(%s=\"%s\")", attr.Key, attr.Value)
 		case attr.Space == "chg":
-			attributestr += c["ita"] + c["atr"] + fmt.Sprintf(" (%s=\""+c["red"]+"%s"+c["atr"]+"\")", attr.Key, strings.Replace(attr.Value, "|||", c["atr"]+"\""+c["arw"]+"\""+c["grn"], 1))
+			attributestr += c["tag"] + " (" + c["ita"] + c["atr"] + fmt.Sprintf("%s=\""+c["del"]+"%s"+c["atr"]+"\")", attr.Key, strings.Replace(attr.Value, "|||", c["atr"]+"\""+c["arw"]+"\""+c["grn"], 1))
 		case attr.Space == "del":
-			attributestr += c["ita"] + c["red"] + fmt.Sprintf(" (%s=\"%s\")", attr.Key, attr.Value)
+			attributestr += " " + c["ita"] + c["del"] + fmt.Sprintf("(%s=\"%s\")"+c["nil"], attr.Key, attr.Value)
 		default:
-			attributestr += c["ita"] + c["atr"] + fmt.Sprintf(" (%s=\"%s\")", attr.Key, attr.Value)
+			attributestr += c["tag"] + " (" + c["ita"] + c["atr"] + fmt.Sprintf("%s=\"%s\""+c["tag"]+")", attr.Key, attr.Value)
 		}
 	}
 	match, _ := regexp.MatchString(`\.\d+$`, el.Tag)
@@ -108,9 +111,9 @@ func EtreeToTTY(el *etree.Element, level int, indent int) string {
 		elText := el.Text()
 		switch el.Space {
 		case "chg":
-			elText = c["nil"] + c["red"] + strings.Replace(elText, "|||", c["nil"]+c["arw"]+c["grn"], 1)
+			elText = c["nil"] + c["del"] + strings.Replace(elText, "|||", c["nil"]+c["arw"]+c["grn"], 1)
 		case "del":
-			elText = c["nil"] + c["red"] + strings.TrimSpace(elText)
+			elText = c["nil"] + c["del"] + strings.TrimSpace(elText)
 		case "new":
 			elText = c["nil"] + c["grn"] + strings.TrimSpace(elText)
 		default:

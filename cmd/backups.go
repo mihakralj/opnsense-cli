@@ -12,9 +12,9 @@ import (
 )
 
 // backupCmd represents the backup command
-var backupCmd = &cobra.Command{
-	Use:   "backup",
-	Short: "Lists available backup configurations or a specific backup",
+var backupsCmd = &cobra.Command{
+	Use:   "backups",
+	Short: "Lists available backup configurations in /conf/backup directory",
 	Long: `The 'backup' command allows you to view the available backup configurations in the OPNsense system or retrieve details of a specific backup. It's an essential tool for managing and understanding the saved configurations within your firewall system.
 
 Example usage:
@@ -63,6 +63,6 @@ Example usage:
 }
 
 func init() {
-	backupCmd.Flags().IntVarP(&depth, "depth", "d", 1, "Specifies number of levels of returned tree (1-5)")
-	rootCmd.AddCommand(backupCmd)
+	backupsCmd.Flags().IntVarP(&depth, "depth", "d", 1, "Specifies number of levels of returned tree (1-5)")
+	rootCmd.AddCommand(backupsCmd)
 }

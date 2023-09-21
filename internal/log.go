@@ -12,17 +12,18 @@ var c = map[string]string{
 	"txt": "\033[33m",
 	"atr": "\033[33m",
 
-	"chg": "\033[35m",
+	"chg": "\033[34m",
 	"new": "\033[32m",
+	"del": "\033[31m\033[9m",
 	"red": "\033[31m",
 	"grn": "\033[32m",
 
-	"yel":  "\033[33m",
-	"blu":  "\033[34m",
-	"mgn":  "\033[35m",
-	"cyn":  "\033[36m",
-	"wht":  "\033[37m",
-	"gry":  "\033[90m",
+	"yel": "\033[33m",
+	"blu": "\033[34m",
+	"mgn": "\033[35m",
+	"cyn": "\033[36m",
+	"wht": "\033[37m",
+	"gry": "\033[90m",
 
 	"ita": "\033[3m", // italics
 	"bld": "\033[1m", // bold
@@ -43,11 +44,11 @@ func Log(verbosity int, format string, args ...interface{}) {
 		c["blu"] + "Note:\t " + c["nil"],
 		c["wht"] + "Debug:\t " + c["nil"]}
 
-		formatted := fmt.Sprintf(format, args...)
-		if len(formatted) > 210 {
-			formatted = formatted[:100] + "\n...\n" + formatted[len(formatted)-100:]
-		}
-		message := levels[verbosity] + formatted
+	formatted := fmt.Sprintf(format, args...)
+	if len(formatted) > 210 {
+		formatted = formatted[:100] + "\n...\n" + formatted[len(formatted)-100:]
+	}
+	message := levels[verbosity] + formatted
 
 	if (verbose >= verbosity || verbosity == 1) && verbosity != 2 {
 		fmt.Fprintln(os.Stderr, message)

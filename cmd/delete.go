@@ -50,39 +50,42 @@ Examples:
 		switch filename {
 		case "age", "keep", "trim":
 			if len(args) < 2 {
-				internal.Log(1, "missing required value for %s",filename)
+				internal.Log(1, "missing required value for %s", filename)
 				return
 			}
 
 			value := args[1]
 			_, err := strconv.Atoi(value) //value needs to be a number
 			if err != nil {
-				internal.Log(1, "%s is not a valid number",value)
+				internal.Log(1, "%s is not a valid number", value)
 			}
 
 			if filename == "age" {
-				bash = "find /conf/backup -type f -mtime +"+value
+				bash = "find /conf/backup -type f -mtime +" + value
 			}
 			if filename == "keep" {
-				bash = "find /conf/backup -type f -print0 | xargs -0 ls -lt | tail -n +"+value+" | awk '{print $NF}'"
+				bash = "find /conf/backup -type f -print0 | xargs -0 ls -lt | tail -n +" + value + " | awk '{print $NF}'"
 			}
 			if filename == "trim" {
-				bash = "find /conf/backup -type f -print0 | xargs -0 ls -lt | tail -n "+value+" | awk '{print $NF}'"
+				bash = "find /conf/backup -type f -print0 | xargs -0 ls -lt | tail -n " + value + " | awk '{print $NF}'"
 			}
 
 			ret := internal.ExecuteCmd(bash+" | wc -l", host)
 
 			cnt := strings.TrimSpace(ret)
-			if cnt=="0" {
+			if cnt == "0" {
 				fmt.Println("no files meeting criteria")
 				return
 			}
-			internal.Log(2, "deleting %s files from /conf/backup",cnt)
+			internal.Log(2, "deleting %s files from /conf/backup", cnt)
 			ret = internal.ExecuteCmd(bash+" | sudo xargs rm", host)
 			if ret == "" {
 				fmt.Printf("%s files have been deleted.\n", cnt)
 			}
 		default:
+			if !strings.HasSuffix(filename, ".xml") {
+				filename += ".xml"
+			}
 			validFilenamePattern := "^[a-zA-Z0-9_.-]+$"
 			match, err := regexp.MatchString(validFilenamePattern, filename)
 			if err != nil || !match {

@@ -24,8 +24,8 @@ import (
 )
 
 // configCmd represents the show command
-var configCmd = &cobra.Command{
-	Use:   "config",
+var showCmd = &cobra.Command{
+	Use:   "show",
 	Short: "Displays information about configuration stored in config.xml",
 	Long: `The show command displays configuration elements in config.xml, including interfaces, routes, firewall rules, and other system settings.
 	 Use this command to view the current system configuration and troubleshoot issues.`,
@@ -61,6 +61,6 @@ var configCmd = &cobra.Command{
 }
 
 func init() {
-	configCmd.Flags().IntVarP(&depth, "depth", "d", 1, "Specifies number of levels of returned tree (1-5)")
-	showCmd.AddCommand(configCmd)
+	showCmd.Flags().IntVarP(&depth, "depth", "d", 1, "Specifies number of levels of returned tree (1-5)")
+	rootCmd.AddCommand(showCmd)
 }
