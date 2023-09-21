@@ -45,8 +45,8 @@ func Log(verbosity int, format string, args ...interface{}) {
 		c["wht"] + "Debug:\t " + c["nil"]}
 
 	formatted := fmt.Sprintf(format, args...)
-	if len(formatted) > 210 {
-		formatted = formatted[:100] + "\n...\n" + formatted[len(formatted)-100:]
+	if len(formatted) > 500 {
+		formatted = formatted[:200] + "\n...\n" + formatted[len(formatted)-200:]
 	}
 	message := levels[verbosity] + formatted
 

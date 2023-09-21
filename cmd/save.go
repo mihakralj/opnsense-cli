@@ -55,8 +55,11 @@ var saveCmd = &cobra.Command{
 		filename = "/conf/backup/"+filename
 		internal.Checkos()
 		configdoc := internal.LoadXMLFile(configfile, host)
+		if configdoc == nil {
+			internal.Log(1,"failed to get data from %s",configfile)
+		}
 		internal.SaveXMLFile(filename, configdoc, host, false)
-		fmt.Printf("Copy of %s saved to %s\n", configfile, filename)
+		fmt.Printf("%s saved to %s\n", configfile, filename)
 	},
 }
 

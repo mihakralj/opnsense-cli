@@ -28,7 +28,7 @@ import (
 var discardCmd = &cobra.Command{
 	Use:   "discard [<xpath>]",
 	Short: `Discard changes made to the 'staging.xml' file`,
-	Long: `The 'discard' command reverses staged changes in the 'staging.xml' file. You can target specific nodes using an XPath expression. If no XPath is provided, all staged changes are discarded, effectively reverting 'staging.xml' to match the active 'config.xml'.`,
+	Long:  `The 'discard' command reverses staged changes in the 'staging.xml' file. You can target specific nodes using an XPath expression. If no XPath is provided, all staged changes are discarded, effectively reverting 'staging.xml' to match the active 'config.xml'.`,
 	Example: `  opnsense discard interfaces/wan/if   Discard changes to the 'if' node under the 'wan' interface
   opnsense discard                     Discard all staged changes in 'staging.xml'
 
@@ -40,8 +40,11 @@ Use the 'discard' command cautiously to avoid losing uncommitted changes.`,
 		internal.Checkos()
 
 		configdoc := internal.LoadXMLFile(configfile, host)
+		if configdoc == nil {
+			internal.Log(1, "failed to get data from %s", configfile)
+		}
 		stagingdoc := internal.LoadXMLFile(stagingfile, host)
-		if stagingdoc.Root() == nil {
+		if stagingdoc == nil {
 			stagingdoc = configdoc
 		}
 		path := "opnsense"
@@ -78,7 +81,7 @@ Use the 'discard' command cautiously to avoid losing uncommitted changes.`,
 			}
 		}
 		internal.SaveXMLFile(stagingfile, stagingdoc, host, true)
-		fmt.Printf("Discarded staged changes in %s\n", path)
+		fmt.Printf("Discarded all staged changes in %s\n", path)
 
 	},
 }

@@ -15,8 +15,8 @@ import (
 var backupsCmd = &cobra.Command{
 	Use:   "backups",
 	Short: `List available backup configurations in '/conf/backup' directory`,
-	Long: `The 'backups' command provides functionalities for managing and viewing backup XML configurations within your OPNsense firewall system. You can list all backup configurations or get details about a specific one.`,
-	Example:`  show backup           Lists all backup XML configurations.
+	Long:  `The 'backups' command provides functionalities for managing and viewing backup XML configurations within your OPNsense firewall system. You can list all backup configurations or get details about a specific one.`,
+	Example: `  show backup           Lists all backup XML configurations.
   show backup <config>  Show details of a specific backup XML configuration`,
 	Run: func(cmd *cobra.Command, args []string) {
 
@@ -24,18 +24,9 @@ var backupsCmd = &cobra.Command{
 		path := "backups"
 		internal.Checkos()
 		backupdoc := etree.NewDocument()
-		bash := fmt.Sprintf(`count=$(find %s -type f | wc -l | sed -e 's/^[[:space:]]*//') && echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<backups count=\"$count\">" &&
-		find /conf/backup -type f -exec sh -c 'echo $(stat -f "%%m" "$1") $(basename "$1") $(stat -f "%%z" "$1") $(md5sum "$1")' sh {} \; | sort -nr -k1 |
-		awk '{
-			date = strftime("%%Y-%%m-%%dT%%H:%%M:%%S", $1)
-			delta = systime() - $1;
-			days = int(delta / 86400);
-			hours = int((delta %% 86400) / 3600);
-			minutes = int((delta %% 3600) / 60);
-			seconds = int(delta %% 60);
-			age = days "d " hours "h " minutes "m " seconds "s";
-			print "  <" $2 " age=\"" age "\"><date>" date "</date><size>" $3 "</size><md5>" $4 "</md5></" $2 ">";}
-		END { print "</backups>"; }'`, backupdir)
+		bash := fmt.Sprintf(`echo -n "<?xml version=##1.0## encoding=##UTF-8##?>\n<backups count=##" | sed 's/##/"/g' && find %s -type f | wc -l | sed -e 's/^[[:space:]]*//' && echo -n '##>' | sed 's/##/"/g'`, backupdir)
+		bash = bash + fmt.Sprintf(`&&find %s -type f -exec sh -c 'echo $(stat -f "%%m" "$1") $(basename "$1") $(stat -f "%%z" "$1") $(md5sum "$1")' sh {} \; | sort -nr -k1`, backupdir)
+		bash = bash + `| awk '{ date = strftime("%Y-%m-%dT%H:%M:%S", $1); delta = systime() - $1; days = int(delta / 86400); hours = int((delta % 86400) / 3600); minutes = int((delta % 3600) / 60); seconds = int(delta % 60); age = days "d " hours "h " minutes "m " seconds "s"; print "  <" $2 " age=\"" age "\"><date>" date "</date><size>" $3 "</size><md5>" $4 "</md5></" $2 ">"; } END { print "</backups>"; }'`
 
 		backups := internal.ExecuteCmd(bash, host)
 

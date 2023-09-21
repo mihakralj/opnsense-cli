@@ -27,21 +27,21 @@ func LoadXMLFile(filename string, host string) *etree.Document {
 		Log(1, "filename %s does not end with .xml", filename)
 	}
 	doc := etree.NewDocument()
-	bash := fmt.Sprintf(`if [ -f %s ]; then cat %s; else echo "missing"; fi`, filename, filename)
+	bash := fmt.Sprintf(`test -f "%s" && cat "%s" || echo "missing"`, filename, filename)
 	content := ExecuteCmd(bash, host)
-	if content != "missing" {
+	if strings.TrimSpace(content) != "missing" {
 		err := doc.ReadFromString(content)
 		if err != nil {
 			Log(1, "%s is not an XML file", filename)
 		}
+		return doc
 	}
-	return doc
+	return nil
 }
 
 func SaveXMLFile(filename string, doc *etree.Document, host string, forced bool) {
 	configout := ConfigToXML(doc, "opnsense")
-
-	bash := `if [ -f "` + filename + `" ]; then echo "exists"; fi`
+	bash := `test -f "` + filename + `" && echo "exists" || echo "missing"`
 	fileexists := ExecuteCmd(bash, host)
 
 	if strings.TrimSpace(fileexists) == "exists" {
@@ -52,24 +52,14 @@ func SaveXMLFile(filename string, doc *etree.Document, host string, forced bool)
 		bash = "sudo rm " + filename
 		ExecuteCmd(bash, host)
 	}
-	// chunking the long config.xml to upload in pieces
-	chunkSize := 200000
-	totalLength := len(configout)
-	for i := 0; i < totalLength; i += chunkSize {
-		end := i + chunkSize
-		if end > totalLength {
-			end = totalLength
-		}
-		chunk := configout[i:end]
-		bash := fmt.Sprintf(`echo -n '%s' | sudo tee -a %s`, chunk, filename)
-		ExecuteCmd(bash, host)
-	}
+
+	sftpCmd(configout, filename, host)
 
 	// check that file was written
-	bash = `if [ -f "` + filename + `" ]; then echo "exists"; fi`
+	bash = `test -f "` + filename + `" && echo "exists" || echo "missing"`
 	fileexists = ExecuteCmd(bash, host)
 
-	if fileexists == "exists" {
+	if strings.TrimSpace(fileexists) == "exists" {
 		Log(4, "%s has been succesfully saved.\n", filename)
 	} else {
 		Log(1, "error writing file %s", filename)

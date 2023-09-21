@@ -46,9 +46,15 @@ The XPath parameter offers node targeting, enabling you to navigate to the exact
 		internal.Checkos()
 
 		configdoc := internal.LoadXMLFile(configfile, host)
+		if configdoc == nil {
+			internal.Log(1,"failed to get data from %s",configfile)
+		}
 		internal.EnumerateListElements(configdoc.Root())
 
 		stagingdoc := internal.LoadXMLFile(stagingfile, host)
+		if stagingdoc == nil {
+			stagingdoc = configdoc
+		}
 		internal.EnumerateListElements(stagingdoc.Root())
 
 		if stagingdoc.Root() == nil {

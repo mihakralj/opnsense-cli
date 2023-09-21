@@ -61,6 +61,9 @@ var restoreCmd = &cobra.Command{
 		filename = "/conf/backup/"+filename
 		internal.Checkos()
 		configdoc := internal.LoadXMLFile(filename, host)
+		if configdoc == nil {
+			internal.Log(1,"failed to get data from %s",filename)
+		}
 		internal.Log(2, "Load %s into /conf/staging.xml.",filename)
 		internal.SaveXMLFile(stagingfile, configdoc, host, true)
 		fmt.Printf("The file %s has been loaded into /conf/staging.xml.\n", filename)

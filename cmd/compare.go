@@ -72,8 +72,11 @@ var compareCmd = &cobra.Command{
 
 		internal.Checkos()
 		olddoc := internal.LoadXMLFile(oldconfig, host)
+		if olddoc == nil {
+			internal.Log(1,"failed to get data from %s",oldconfig)
+		}
 		newdoc := internal.LoadXMLFile(newconfig, host)
-		if newdoc.Root() == nil {
+		if newdoc == nil {
 			newdoc = olddoc
 		}
 		deltadoc := internal.DiffXML(olddoc, newdoc, true)

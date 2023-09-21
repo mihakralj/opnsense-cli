@@ -22,9 +22,9 @@ Administrators  typically only two options how to manage the firewall: either th
 
 ### Commands
 
-- **`show system [<xpath>]`**: Retrieves system information from the firewall.
-- **`show config [<xpath>]`**: Displays xpath segment of config.xml.
-- **`show backup [<backup.xml>]`**: Lists available backup configs or displays a specific backup.
+- **`sysctl [<xpath>]`**: Retrieves system information from the firewall.
+- **`show [<xpath>]`**: Displays xpath segment of config.xml.
+- **`backups [<backup.xml>]`**: Lists available backup configs or displays a specific backup.
 - **`run <service> <command>`**: Executes commands on OPNsense.
 - **`set <xpath> value <value>`**: Sets a value of a specific node in staging.xml file.
 - **`commit`**: Moves staging.xml to active config.xml.
@@ -36,49 +36,17 @@ Administrators  typically only two options how to manage the firewall: either th
 - **`delete age [days]`**: Deletes all backups older than specified days
 - **`delete keep [count]`**: Keeps specified number of backups and deletes the rest
 - **`delete trim [count]`**: Deletes number of the oldest backups
+- **`set <xpath> [value] [(attribute)]`**: Adds a new branch, value and/or attribute
+- **`set <xpath> [value] [(attribute)] -d`**: Deletes branch, value and/or attribute
 
 ### Flags
 
 - **`--target (-t)`**: Sets the target OPNsense in the form of `user@hostname[:port]`.
+- **`--no-color (-n)`**: Disable ANSI color output
 - **`--force (-f)`**: Removes checks and prompts before `config.xml` or `configctl` are touched.
-- **`--depth (-d)`**: Specifies the number of branch levels to show.
 - **`--verbose (-v)`**: Sets verbosity (1=error, 2=warning, 3=info, 4=note, 5=debug).
 - **`--no-color (-n)`**: Removes ANSI colors from the printout.
-- **`--xml`**: Displays results in XML format.
-- **`--json`**: Displays results in JSON format.
-- **`--yaml`**: Displays results in YAML format.
+- **`--xml (-x)`**: Displays results in XML format.
+- **`--json (-j)`**: Displays results in JSON format.
+- **`--yaml (-y)`**: Displays results in YAML format.
 
-## Installation
-
-### FreeBSD 12/13
-
-installs to `usr/local/bin`:
-```bash
-sudo pkg add https://github.com/mihakralj/opnsense-cli/releases/download/beta/opnsense.txz
-```
-### Debian/Ubuntu
-
-installs to `usr/local/bin`:
-```bash
-curl -O https://github.com/mihakralj/opnsense-cli/releases/download/beta/opnsense.deb
-dpkg -i opnsense.deb
-```
-
-### macOS
-Package install (installs to `/usr/local/bin`):
-```bash
-curl -O https://github.com/mihakralj/opnsense-cli/releases/download/beta/opnsense.pkg
-sudo installer -pkg opnsense.pkg -target /
-```
-
-signed binary:
-```bash
-curl -O https://github.com/mihakralj/opnsense-cli/releases/download/beta/opnsense -O opnsense
-sudo chmod +x opnsense
-```
-
-### Windows
- executable `opnsense.exe`:
-```powershell
-Invoke-WebRequest -Uri https://github.com/mihakralj/opnsense-cli/releases/download/beta/opnsense.exe -OutFile opnsense.exe
-```

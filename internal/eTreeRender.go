@@ -10,18 +10,16 @@ import (
 
 func FocusEtree(doc *etree.Document, path string) *etree.Element {
 	foundElements := doc.FindElements(path)
-	foundElement := foundElements[len(foundElements)-1]
-	if foundElement == nil {
+	if len(foundElements) == 0 {
 		Log(1, "Xpath element \"%s\" does not exist", path)
 		return nil
 	}
-	//fmt.Println(path, "elements: ", len(foundElements))
 
 	parts := strings.Split(path, "/")
 	focused := etree.NewElement(parts[0])
 
 	// Get the space of the found element
-	space := foundElement.Space
+	space := foundElements[0].Space
 	depth := len(parts)
 	if depth > 1 {
 		parts = parts[:depth-1]
@@ -41,7 +39,10 @@ func FocusEtree(doc *etree.Document, path string) *etree.Element {
 			}
 			current = newElem
 		}
-		current.AddChild(foundElement.Copy())
+		// Add all found elements
+		for _, foundElement := range foundElements {
+			current.AddChild(foundElement.Copy())
+		}
 	} else {
 		focused = doc.Root()
 	}

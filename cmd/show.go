@@ -27,7 +27,7 @@ import (
 var showCmd = &cobra.Command{
 	Use:   "show",
 	Short: "Display active and staged information in 'config.xml'",
-	Long: `The 'show' command allows you to view various configuration elements within the 'config.xml' file of your OPNsense firewall system. This includes details about interfaces, routes, firewall rules, and other essential settings. The command is useful for reviewing the current system configuration and aiding in troubleshooting.`,
+	Long:  `The 'show' command allows you to view various configuration elements within the 'config.xml' file of your OPNsense firewall system. This includes details about interfaces, routes, firewall rules, and other essential settings. The command is useful for reviewing the current system configuration and aiding in troubleshooting.`,
 	Example: `  opnsense show interfaces/wan    Display configuration details for the WAN interface
   opnsense show system/hostname   Show the system's current hostname
   opnsense show firewall/rules    List all firewall rules in 'config.xml'`,
@@ -52,9 +52,15 @@ var showCmd = &cobra.Command{
 		internal.Checkos()
 
 		configdoc := internal.LoadXMLFile(configfile, host)
+		if configdoc.Root() == nil {
+			internal.Log(1, "failed to get data from %s", configfile)
+		}
 		stagingdoc := internal.LoadXMLFile(stagingfile, host)
-		if stagingdoc.Root() == nil {
+
+		if stagingdoc == nil {
 			stagingdoc = configdoc
+			internal.Log(4, "failed to get data from %s, using %s", stagingfile, configfile)
+
 		}
 
 		deltadoc := internal.DiffXML(configdoc, stagingdoc, true)
