@@ -27,20 +27,14 @@ import (
 // discardCmd represents the discard command
 var discardCmd = &cobra.Command{
 	Use:   "discard [<xpath>]",
-	Short: "Discards changes in the staging.xml file.",
-	Long: `The 'discard' command discard changes staged in the staging.xml file. You can discard changes for a specific node identified
-by an XPath or discard all changes if no XPath is provided.
+	Short: `Discard changes made to the 'staging.xml' file`,
+	Long: `The 'discard' command reverses staged changes in the 'staging.xml' file. You can target specific nodes using an XPath expression. If no XPath is provided, all staged changes are discarded, effectively reverting 'staging.xml' to match the active 'config.xml'.`,
+	Example: `  opnsense discard interfaces/wan/if   Discard changes to the 'if' node under the 'wan' interface
+  opnsense discard                     Discard all staged changes in 'staging.xml'
 
-Using an XPath allows targeting specific nodes in staging.xml without affecting other modifications that are staged for commit.
-If no XPath is specified, all changes in the staging.xml file will be discarded, removing any staged changes to the config.xml.
+To review staged changes, use 'show' or 'compare' command with no arguments.
+Use the 'discard' command cautiously to avoid losing uncommitted changes.`,
 
-Examples:
-  opnsense discard interfaces/wan/if   - discards changes made to the 'if' node under 'wan' interface
-  opnsense discard system/hostname     - discards changes made to the 'hostname' node
-  opnsense discard                     - discards all changes in the staging.xml file.
-
-To review staged changes, use 'opnsense show config' or 'opnsense compare' (without arguments).
-Always use discard command with caution to avoid losing uncommitted work.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		internal.Checkos()

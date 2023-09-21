@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	Version     string = "0.11.0"
+	Version     string = "0.12.0"
 	verbose     int
 	force       bool
 	host        string
@@ -24,17 +24,16 @@ var (
 )
 
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&host, "target", "t", "", "Target host (-t user@hostname[:port])")
-	rootCmd.PersistentFlags().IntVarP(&verbose, "verbose", "v", 1, "Set verbosity level (1-5)")
-	rootCmd.PersistentFlags().BoolVarP(&nocolor, "no-color", "n", false, "Turn off ANSI colored output")
-	//rootCmd.PersistentFlags().IntVarP(&depth, "depth", "d", 1, "Specifies number of levels of returned tree (1-5)")
-	rootCmd.PersistentFlags().BoolVar(&xmlFlag, "xml", false, "Output in XML format")
-	rootCmd.PersistentFlags().BoolVar(&jsonFlag, "json", false, "Output in JSON format")
-	rootCmd.PersistentFlags().BoolVar(&yamlFlag, "yaml", false, "Output in YAML format")
-	rootCmd.PersistentFlags().BoolVarP(&force, "force", "f", false, "Accept or bypass checks and prompts")
-	rootCmd.Flags().BoolVar(&ver_flag, "version", false, "display version of opnsense")
+	rootCmd.PersistentFlags().StringVarP(&host, "target", "t", "", "Specify target host (user@hostname[:port])")
+	rootCmd.PersistentFlags().IntVarP(&verbose, "verbose", "v", 1, "Set verbosity level (range: 1-5, default: 1)")
+	rootCmd.PersistentFlags().BoolVarP(&nocolor, "no-color", "n", false, "Disable ANSI color output")
+	rootCmd.PersistentFlags().BoolVarP(&xmlFlag, "xml", "x", false, "Output results in XML format")
+	rootCmd.PersistentFlags().BoolVarP(&jsonFlag, "json", "j", false, "Output results in JSON format")
+	rootCmd.PersistentFlags().BoolVarP(&yamlFlag, "yaml", "y", false, "Output results in YAML format")
+	rootCmd.PersistentFlags().BoolVarP(&force, "force", "f", false, "Bypass checks and prompts (force action)")
+	rootCmd.Flags().BoolVarP(&ver_flag, "version", "V", false, "Display the version of opnsense")
 
-	rootCmd.SetHelpCommand(&cobra.Command{Hidden: true})
+	//rootCmd.SetHelpCommand(&cobra.Command{Hidden: true})
 
 	cobra.OnInitialize(func() {
 		configfile = "/conf/config.xml"
@@ -46,18 +45,13 @@ func init() {
 
 var rootCmd = &cobra.Command{
 	Use:   "opnsense [command]",
-	Short: "CLI to manage and monitor OPNsense firewall systems.",
-	Long: `Command Line utility to interact with OPNsense firewall.
+	Short: "CLI tool for managing and monitoring OPNsense firewall systems",
+	Long: `The 'opnsense' command-line utility provides non-GUI administration of OPNsense firewall systems. It can be run locally on the firewall or remotely via an SSH tunnel.
 
-opnsense CLI is a command-line utility for managing, configuring, and monitoring OPNsense firewall systems.
-It facilitates non-GUI administration, both locally on the firewall and remotely via an SSH tunnel.
-To avoid entering passwords for each remote call, use 'ssh-add' to add private key to your ssh-agent.`,
-
-	Example: `  opnsense show interfaces/wan       - Show the inerfaces/wan of config.xml in json format
-  opnsense sysinfo                   - Show system information on remote OPNsense
-  opnsense backup                    - Show backup files and their age
-  opnsense run firmware reboot -f    - Reboot OPNsense, force (no confirmation)
-  opnsense commit                    - Commit staged changes`,
+To streamline remote operations, add your private key to the SSH agent using 'ssh-add' and the matching public key to the admin account on OPNsense.`,
+	Example: `  opnsense help [COMMAND]                Display help for specific commands
+  opnsense show interfaces/wan           Show details for the interfaces/wan node in config.xml
+  opnsense -t admin@192.168.1.1 sysinfo  Retrieve system information from a remote firewall`,
 
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		return nil

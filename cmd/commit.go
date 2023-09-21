@@ -26,16 +26,12 @@ import (
 // commitCmd represents the commit command
 var commitCmd = &cobra.Command{
 	Use:   "commit",
-	Short: "Commits the staging.xml configuration to become the active config.xml.",
-	Long: `The 'commit' command finalizes the changes made to the staging.xml file, making them the active configuration
-for the OPNsense firewall system. This operation is the last step in a sequence that typically involves the 'set' and
-optionally 'compare' commands. The commit action creates a backup of active config.xml,
-moves staging.xml to config.xml and reloads configd service.
+	Short: `Commit changes from the 'staging.xml' to the active 'config.xml'`,
+	Long: `The 'commit' command finalizes the staged changes made to the 'staging.xml' file, making them the active configuration for the OPNsense firewall system. This operation is the last step in a sequence that typically involves the 'set' and optionally 'discard' commands. The 'commit' action creates a backup of the active 'config.xml', moves 'staging.xml' to 'config.xml', and reloads the 'configd' service.
+	`,
 
-Examples:
-  opnsense commit          - Commit the changes in staging.xml to config.xml.
-  opnsense commit --force  - Commit the changes without interactive confirmation.
-`,
+Example: `  opnsense commit          Commit the changes in 'staging.xml' to become the active 'config.xml'
+  opnsense commit --force  Commit the changes without requiring interactive confirmation.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// check if staging.xml exists
@@ -52,7 +48,7 @@ Examples:
 		bash = `sudo cp -f ` + configfile + ` /conf/backup/` + backupname + ` && sudo mv -f /conf/staging.xml `+configfile
 		//internal.ExecuteCmd(bash, host)
 		fmt.Println(bash)
-		
+
 		bash = `if [ -f "` + configfile + `" ]; then echo "ok"; else echo "error"; fi`
 		fileexists = internal.ExecuteCmd(bash, host)
 		if fileexists == "ok" {

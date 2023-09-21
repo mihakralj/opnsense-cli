@@ -29,14 +29,11 @@ import (
 // saveCmd represents the save command
 var saveCmd = &cobra.Command{
 	Use:   "save [filename]",
-	Short: "Creates a new backup configuration in /conf/backup directory.",
-	Long: `The 'save' command parses existing configuration and generates a copy in /conf/backup directory.
+	Short: "Create a new backup XML configuration in '/conf/backup' directory",
+	Long: `The 'save' command generates a new backup of the existing configuration, storing it in the '/conf/backup' directory. You can specify a filename for the backup, or if no filename is provided, the system will generate a default name based on the current epoch time.`,
+	Example: `  opnsense save                 Save current config as '/conf/backup/config-<epoch_time>.xml'
+  opnsense save filename.xml    Save current config as '/conf/backup/filename.xml'`,
 
-Examples:
-  opnsense save               - saves current config as /conf/backup/config-<epoch_time>.xml
-  opnsense save filename      - saves current config as /conf/backup/filename.xml
-  opnsense save filename.xml  - saves current config as /conf/backup/filename.xml.
-	  `,
 	Run: func(cmd *cobra.Command, args []string) {
 		filename := ""
 		if len(args) < 1 {

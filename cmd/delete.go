@@ -28,15 +28,13 @@ import (
 // deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
 	Use:   "delete [filename|command]",
-	Short: "Deletes a backup configuration from /conf/backup",
-	Long: `The 'delete' command allows you to delete a specific backup configuration from the OPNsense system. It is limited to /conf/backup directory only.
+	Short: `Remove a backup XML configuration from '/conf/backup'`,
+	Long: `The 'delete' command allows for the removal of specific backup configurations from the '/conf/backup' directory in the OPNsense firewall system. You can specify either a filename or a command that sets conditions based on age or quantity.`,
+	Example: `  opnsense delete filename.xml  Delete a specific file from '/conf/backup'
+  opnsense delete age 10        Delete all files older than 10 days in '/conf/backup'
+  opnsense delete trim 10       Delete the oldest 10 backup files in '/conf/backup'
+  opnsense delete keep 10       Keep the most recent 10 backup files, delete the rest`,
 
-Examples:
-  opnsense delete filename.xml  - Delete a specific file in /conf/backup.
-  opnsense delete age 10        - Delete all files older than 10 days
-  opnsense delete trim 10       - Delete the oldest 10 backup files
-  opnsense delete keep 10       - Delete all backup files except the most recent 10
-`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
