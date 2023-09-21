@@ -25,18 +25,14 @@ import (
 )
 
 // loadCmd represents the load command
-var loadCmd = &cobra.Command{
-	Use:     "load [<backup.xml>]",
-	Aliases: []string{"restore", "revert"},
-	Short:   "Restores the firewall's active configuration from a backup file.",
-	Long: `The 'load' command enables you to restore the active configuration of the OPNsense firewall system from a specified backup file located in the /conf/backup directory. If no filename is provided, the most recent backup will be loaded into config.xml.
-Command has aliases 'restore' and 'revert' .
+var restoreCmd = &cobra.Command{
+	Use:     "restore [<backup.xml>]",
+	Aliases: []string{"load"},
+	Short:   `Restore active configuration from a backup XML file`,
+	Long: `The 'restore' command restores the active configuration of the OPNsense firewall system using a backup file from the '/conf/backup' directory. When no filename is provided, the system defaults to using the most recent backup. The command also has alias 'load'.`,
+	Example: `  opnsense restore              Restore from the most recent backup in '/conf/backup'
+  opnsense load config-123.xml  Restore from the specified backup file in '/conf/backup'`,
 
-Examples:
-  opnsense load                  - Restore from the most recent backup in /conf/backup.
-  opnsense load config-123.xml   - Restore from a backup file /conf/backup/config-123.xml.
-  opnsense load --force          - Restore from the most recent backup without interactive confirmation.
-`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		var filename string
@@ -72,6 +68,6 @@ Examples:
 }
 
 func init() {
-	rootCmd.AddCommand(loadCmd)
+	rootCmd.AddCommand(restoreCmd)
 
 }

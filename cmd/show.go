@@ -26,9 +26,12 @@ import (
 // configCmd represents the show command
 var showCmd = &cobra.Command{
 	Use:   "show",
-	Short: "Displays information about configuration stored in config.xml",
-	Long: `The show command displays configuration elements in config.xml, including interfaces, routes, firewall rules, and other system settings.
-	 Use this command to view the current system configuration and troubleshoot issues.`,
+	Short: "Display active and staged information in 'config.xml'",
+	Long: `The 'show' command allows you to view various configuration elements within the 'config.xml' file of your OPNsense firewall system. This includes details about interfaces, routes, firewall rules, and other essential settings. The command is useful for reviewing the current system configuration and aiding in troubleshooting.`,
+	Example: `  opnsense show interfaces/wan    Display configuration details for the WAN interface
+  opnsense show system/hostname   Show the system's current hostname
+  opnsense show firewall/rules    List all firewall rules in 'config.xml'`,
+
 	Run: func(cmd *cobra.Command, args []string) {
 
 		path := "opnsense"

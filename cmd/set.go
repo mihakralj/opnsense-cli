@@ -32,20 +32,15 @@ var deleteFlag bool = false
 // setCmd represents the set command
 var setCmd = &cobra.Command{
 	Use:   "set <xpath> <value> <(att=value)>",
-	Short: "Sets a value and an attribute for a specific node in the staging.xml file.",
-	Long: `The 'set' command allows you to assign a new value to a specific node within the staging.xml file, effectively modifying the configuration in a controlled manner.
+	Short: "Set a value or attribute for a node in 'staging.xml'",
+	Long: `The 'set' command modifies a specific node in the 'staging.xml' file by assigning a new value or attribute. These changes are staged and will not take effect until the 'commit' command is executed to move 'staging.xml' to 'config.xml'. You can discard any changes using the 'discard' command.
 
-Before the changes can take effect, you need to use the 'commit' command to move the staging.xml file to the active config.xml. If at any point you decide to discard the changes made, you can use the 'discard' command.
+The XPath parameter offers node targeting, enabling you to navigate to the exact node to modify in the XML structure.`,
+	Example: `  opnsense set interfaces/wan/if igb0      Set the 'interfaces/wan/if' node to 'igb0'
+  opnsense set system/hostname myrouter    Assign 'myrouter' as the hostname in 'staging.xml'
+  opnsense set interfaces "(version=2.0)"  Assign an attribute to the node
+  opnsense set system/hostname -d          Remove the 'system/hostname' node and all its contents`,
 
-The XPath parameter allows for precise targeting of the nodes in the XML structure, helping you to navigate to the exact setting or property that you wish to update.
-
-Examples:
-  opnsense set interfaces/wan/if igb0         - sets the 'interfaces/wan/if' node with the value 'igb0'
-  opnsense set system/hostname myrouter       - assigns 'myrouter' as the new hostname in the staging.xml file.
-  opnsense set interfaces "(version=2.0)"     - assign an attribute 'version' with value '2.0' to node 'interfaces'
-  opnsense set system/hostname -d             - remove the node and all its content, attributes and children.
-
-Make sure to validate your XPath expressions to avoid any unintended changes.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		internal.Checkos()

@@ -15,21 +15,12 @@ import (
 // systemCmd represents the status command
 var sysinfoCmd = &cobra.Command{
 	Use:   "sysinfo [node]",
-	Short: "Retrieves system information - hardware, OS, storage, network",
-	Long: `
-Sysinfo command provides a comprehensive overview of the OPNsense's current state.
-The output is divided into multiple branches, each offering details about different aspects of the system:
+	Short: "Retrieve comprehensive system information",
+	Long: `The 'sysinfo' command provides an extensive overview of your OPNsense firewall system, including hardware, operating system, storage, and network configurations. The output is organized into multiple branches, each containing details on various aspects of the system:`,
+	Example: `  opnsense sysinfo hardware          Display hardware details
+  opnsense sysinfo storage/disk0     Information about the first disk
+  opnsense sysinfo network/igb0/mtu  Show the MTU for the igb0 network interface`,
 
-- hardware: Presents details about the system's hardware, including the CPU, memory and recognized disks.
-- system: Contains information about OPNSense, OS, its release version, boot time, and uptime.
-- storage: Displays the configurations of available storage devices and any associated zpools.
-- network: Lists all network interfaces available on the system.
-
-you can use xpath to dive deeper into the result tree:
-opnsense sysinfo hardware
-opnsense sysinfo storage/disk0
-opnsense sysinfo network/igb0/mtu
-`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if changed := cmd.Flags().Changed("depth"); !changed {
 			depth = 2

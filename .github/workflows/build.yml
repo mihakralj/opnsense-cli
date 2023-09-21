@@ -132,12 +132,12 @@ jobs:
       run:  |
         INSTSIGNING_IDENTITY=$(security find-identity -v -p basic | grep "Installer" | awk '{print $2}')
         productsign --keychain build.keychain --sign $INSTSIGNING_IDENTITY ./opnsense.pkg ./signed-opnsense.pkg
-        mv ./signed-opnsense.pkg ./opnsense.pkg
+        mv ./signed-opnsense.pkg ./opnsense-macos.pkg
 
     - name: notarize
       run: |
-        xcrun notarytool submit ./opnsense.pkg --wait --apple-id ${{ secrets.APPLE_NOTARIZATION_USERNAME }} --password ${{ secrets.APPLE_NOTARIZATION_PASSWORD }} --team-id ${{ secrets.APPLE_TEAM_NAME }}
-        xcrun stapler staple ./opnsense.pkg
+        xcrun notarytool submit ./opnsense-macos.pkg --wait --apple-id ${{ secrets.APPLE_NOTARIZATION_USERNAME }} --password ${{ secrets.APPLE_NOTARIZATION_PASSWORD }} --team-id ${{ secrets.APPLE_TEAM_NAME }}
+        xcrun stapler staple ./opnsense-macos.pkg
 
     - name: Compile .txz package in FreeBSD
       id: compile
@@ -164,7 +164,7 @@ jobs:
           echo -e "name: opnsense-cli\nversion: ${VERSION}\norigin: net-mgmt/opnsense-cli\ncomment: \"CLI to manage and monitor OPNsense firewall configuration, check status, change settings, and execute commands.\"\ndesc: \"opnsense is a command-line utility for managing, configuring, and monitoring OPNsense firewall systems. It facilitates non-GUI administration, both directly in the shell and remotely via an SSH tunnel. All interactions with OPNsense utilize the same mechanisms as the Web GUI, including staged modifications of config.xml and execution of available configd commands.\"\nmaintainer: \"miha.kralj@outlook.com\"\nwww: \"https://github.com/mihakralj/opnsense-cli\"\nabi: \"FreeBSD:*:amd64\"\nprefix: /usr/local\nflatsize: ${flatsize}" > /Users/runner/work/opnsense-cli/opnsense-cli/manifest
           echo -e "files: {\n  \"/usr/local/bin/opnsense\": \"${checksum}\",\n}" >> /Users/runner/work/opnsense-cli/opnsense-cli/manifest
           pkg create -M /Users/runner/work/opnsense-cli/opnsense-cli/manifest -o /Users/runner/work/opnsense-cli/opnsense-cli/ -f txz
-          mv opnsense-cli-*.pkg opnsense.txz
+          mv opnsense-cli-*.pkg *.txz
           ls -l
 
     - name: Upload all artifacts
@@ -173,7 +173,7 @@ jobs:
         name: bin
         path: |
           ./opnsense-macos
-          ./opnsense.txz
+          ./opnsense*.txz
           ./opnsense.pkg
 
   release:
@@ -197,7 +197,7 @@ jobs:
         with:
           prerelease: true
           draft: false
-          tag_name: beta
+          tag_name: ${{ env.VERSION }}
           name: opnsense-cli ${{ env.VERSION }}
           files: ./bin/opnsense*
         env:

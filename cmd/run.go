@@ -13,17 +13,14 @@ import (
 
 var runCmd = &cobra.Command{
 	Use:   "run [service] [command] [parameters]",
-	Short: "Executes commands on OPNsense firewall.",
-	Long: `Execute registered command on OPNsense.
+	Short: "Execute registered commands on OPNsense firewall",
+	Long: `The 'run' command allows you to list and execute specific commands registered with the 'configctl' utility on the OPNsense firewall system. You can run various service-specific commands and other operational tasks.`,
+	Example: `  opnsense run                       List all available configd services
+  opnsense run dns                   List available commands for DNS service
+  opnsense run dhcpd list leases     Show DHCP leases
+  opnsense run interface flush arp   Flush ARP table
+  opnsense run firmware reboot       Initiate a system reboot`,
 
-The 'run' command is used to execute specific command that is registered with 'configctl' on OPNsense.`,
-
-	Example: `  opnsense run                      - List configd services
-  opnsense run dns                  - List commands for dns service
-  opnsense run dhcpd list leases    - Show DHCP leases
-  opnsense run interface flush arp  - Flush arp table
-  opnsense run firmware reboot      - Issue a reboot
-`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 

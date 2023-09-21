@@ -25,16 +25,12 @@ import (
 // compareCmd represents the compare command
 var compareCmd = &cobra.Command{
 	Use:   "compare [<original.xml>] [<modified.xml>]",
-	Short: "Compares two configuration files to identify differences.",
-	Long: `The 'compare' command is designed to help identify differences between two XML configuration
-files. When only one filename.xml is provided, 'compare' shows diff from that file to current config.xml.
-When no filenames are provided, 'compare' shows diff from current config.xml to staging.xml.
+	Short: `Compare differences between two XML configuration files`,
+	Long: `The 'compare' command identifies differences between two XML configuration files for the OPNsense firewall system. When only one filename is provided, it shows the differences between that file and the current 'config.xml'. When no filenames are provided, it compares the current 'config.xml' with 'staging.xml', akin to the 'show' command.`,
+	Example: `  opnsense compare b1.xml b2.xml  Compare differences from 'b1.xml' to 'b2.xml'
+  opnsense compare backup.xml     Compare differences from 'backup.xml' to 'config.xml'
+  opnsense compare                Compare differences from 'config.xml' to 'staging.xml'`,
 
-Examples:
-  opnsense compare backup1.xml backup2.xml - diff from backup1.xml to backup2.xml
-  opnsense compare backup.xml              - diff from backup.xml to config.xml
-  opnsense compare                         - diff from config.xml to staging.xml
-`,
 	Run: func(cmd *cobra.Command, args []string) {
 		internal.SetFlags(verbose, force, host, configfile, nocolor, depth, xmlFlag, yamlFlag, jsonFlag)
 		var oldconfig, newconfig, path string

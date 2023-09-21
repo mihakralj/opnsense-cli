@@ -14,12 +14,10 @@ import (
 // backupCmd represents the backup command
 var backupsCmd = &cobra.Command{
 	Use:   "backups",
-	Short: "Lists available backup configurations in /conf/backup directory",
-	Long: `The 'backup' command allows you to view the available backup configurations in the OPNsense system or retrieve details of a specific backup. It's an essential tool for managing and understanding the saved configurations within your firewall system.
-
-Example usage:
-- show backup: Lists all available backup configurations.
-- show backup <config>: Displays details of a specific backup configuration identified by <config>.`,
+	Short: `List available backup configurations in '/conf/backup' directory`,
+	Long: `The 'backups' command provides functionalities for managing and viewing backup XML configurations within your OPNsense firewall system. You can list all backup configurations or get details about a specific one.`,
+	Example:`  show backup           Lists all backup XML configurations.
+  show backup <config>  Show details of a specific backup XML configuration`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		backupdir := "/conf/backup/"
@@ -63,6 +61,6 @@ Example usage:
 }
 
 func init() {
-	backupsCmd.Flags().IntVarP(&depth, "depth", "d", 1, "Specifies number of levels of returned tree (1-5)")
+	backupsCmd.Flags().IntVarP(&depth, "depth", "d", 1, "Specify the depth of shown hierarchy (Default: 1)")
 	rootCmd.AddCommand(backupsCmd)
 }
