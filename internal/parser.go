@@ -34,8 +34,11 @@ func EtreeToJSON(el *etree.Element) (string, error) {
 
 func ConfigToTTY(doc *etree.Document, path string) string {
 	focused := FocusEtree(doc, path)
-	//calculate depth of path
-	return EtreeToTTY(focused, depth+len(strings.Split(path, "/"))-1, 0)
+	d := depth + len(strings.Split(path, "/")) - 1
+	if len(doc.FindElements(path)) > 1 {
+		d -= 1
+	}
+	return EtreeToTTY(focused, d, 0)
 }
 
 func ConfigToXML(doc *etree.Document, path string) string {
