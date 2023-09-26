@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 MihaK mihak09@gmail.com
+Copyright © 2023 Miha miha.kralj@outlook.com
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -39,11 +39,8 @@ Use the 'discard' command cautiously to avoid losing uncommitted changes.`,
 
 		internal.Checkos()
 
-		configdoc := internal.LoadXMLFile(configfile, host)
-		if configdoc == nil {
-			internal.Log(1, "failed to get data from %s", configfile)
-		}
-		stagingdoc := internal.LoadXMLFile(stagingfile, host)
+		configdoc := internal.LoadXMLFile(configfile, host, false)
+		stagingdoc := internal.LoadXMLFile(stagingfile, host, true)
 		if stagingdoc == nil {
 			stagingdoc = configdoc
 		}
@@ -53,36 +50,72 @@ Use the 'discard' command cautiously to avoid losing uncommitted changes.`,
 			internal.Log(2, "Discarding all staged configuration changes.")
 			stagingdoc = configdoc
 		} else {
-			trimmedArg := strings.Trim(args[0], "/")
-			if matched, _ := regexp.MatchString(`\[0\]`, trimmedArg); matched {
+
+			if matched, _ := regexp.MatchString(`\[0\]`, args[0]); matched {
 				internal.Log(1, "XPath indexing of elements starts with 1, not 0")
 			}
-			if trimmedArg != "" {
-				path = trimmedArg
+			if args[0] != "" {
+				path = args[0]
 			}
+
 			parts := strings.Split(path, "/")
 			if parts[0] != "opnsense" {
 				path = "opnsense/" + path
 			}
-			configElement := configdoc.FindElement(path)
-			stagingElement := stagingdoc.FindElement(path)
+			if !strings.HasPrefix(path, "/") {
+				path = "/" + path
+			}
 
-			if stagingElement != nil {
-				if configElement != nil {
-					stagingParent := stagingElement.Parent()
-					stagingParent.RemoveChild(stagingElement)
-					stagingParent.AddChild(configElement.Copy())
-				} else {
-					stagingParent := stagingElement.Parent()
-					stagingParent.RemoveChild(stagingElement)
+			stagingEl := stagingdoc.FindElement(path)
+			configEl := configdoc.FindElement(path)
+
+			if configEl == nil && stagingEl != nil {
+				// Element is new in staging, remove it
+				parent := stagingEl.Parent()
+				parent.RemoveChild(stagingEl)
+
+				// Remove the last part of the path
+				lastSlash := strings.LastIndex(path, "/")
+				if lastSlash != -1 {
+					path = path[:lastSlash]
 				}
-			} else {
-				stagingdoc.Root().AddChild(configElement.Copy())
+			} else if configEl != nil && stagingEl != nil {
+				// Element exists in both configdoc and stagingdoc, restore it
+				parent := stagingEl.Parent()
+				parent.RemoveChild(stagingEl)
+				parent.AddChild(configEl.Copy())
+
+				// Restore attributes
+				configAttrs := configEl.Attr
+				stagingEl = parent.FindElement(configEl.Tag)
+				if stagingEl != nil {
+					for _, attr := range configAttrs {
+						stagingEl.CreateAttr(attr.Key, attr.Value)
+					}
+				}
+			} else if configEl != nil && stagingEl == nil {
+				// Element exists in configdoc but not in stagingdoc, add it to stagingdoc
+				stagingdoc.Root().AddChild(configEl.Copy())
+
+				// Copy attributes
+				configAttrs := configEl.Attr
+				stagingEl = stagingdoc.Root().FindElement(configEl.Tag)
+				if stagingEl != nil {
+					for _, attr := range configAttrs {
+						stagingEl.CreateAttr(attr.Key, attr.Value)
+					}
+				}
 			}
 		}
-		internal.SaveXMLFile(stagingfile, stagingdoc, host, true)
-		fmt.Printf("Discarded all staged changes in %s\n", path)
 
+		if len(args) < 1 {
+			fmt.Printf("Discarded all staged configuration changes")
+		} else {
+			fmt.Printf("Discarded staged changes in node %s:\n\n", path)
+			deltadoc := internal.DiffXML(configdoc, stagingdoc, true)
+			internal.PrintDocument(deltadoc, path)
+		}
+		internal.SaveXMLFile(stagingfile, stagingdoc, host, true)
 	},
 }
 

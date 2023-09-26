@@ -1,3 +1,18 @@
+/*
+Copyright © 2023 Miha miha.kralj@outlook.com
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+	http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package internal
 
 import (
@@ -8,17 +23,108 @@ import (
 )
 
 // DiffXML compares two etree documents and returns a new document with only the changed elements.
-func DiffXML(oldDoc, newDoc *etree.Document, compare bool) *etree.Document {
+func DiffXML(oldDoc, newDoc *etree.Document, fulltree bool) *etree.Document {
+	diffDoc := oldDoc.Copy()
+
 	EnumerateListElements(newDoc.Root())
-	EnumerateListElements(oldDoc.Root())
+	EnumerateListElements(diffDoc.Root())
 
-	addMissingElements(newDoc.Root(), oldDoc)
-	checkElements(oldDoc.Root(), newDoc)
+	addMissingElements(newDoc.Root(), diffDoc)
+	checkElements(diffDoc.Root(), newDoc)
 
-	ReverseEnumerateListElements(oldDoc.Root())
+	ReverseEnumerateListElements(diffDoc.Root())
 	ReverseEnumerateListElements(newDoc.Root())
 
-	return oldDoc
+	if !fulltree {
+		removeNodesWithoutSpace(diffDoc.Root())
+		removeAttSpace(diffDoc.Root())
+	}
+	return diffDoc
+}
+
+// removeNodesWithoutSpace recursively removes elements without a "Space" attribute
+func removeNodesWithoutSpace(el *etree.Element) {
+	for i := 0; i < len(el.Child); i++ {
+		child, ok := el.Child[i].(*etree.Element)
+		if !ok {
+			continue
+		}
+
+		// Check if any attribute has Space defined
+		hasAttrWithSpace := false
+		for _, attr := range child.Attr {
+			if attr.Space != "" {
+				hasAttrWithSpace = true
+				break
+			}
+		}
+
+		// Remove the child element only if it doesn't have a Space and none of its attributes have a Space
+		if child.Space == "" && !hasAttrWithSpace {
+			el.RemoveChildAt(i)
+			i-- // Adjust index because we've removed an item
+			continue
+		}
+
+		removeNodesWithoutSpace(child)
+	}
+}
+
+func removeAttSpace(el *etree.Element) {
+	if el == nil {
+		return
+	}
+
+	// Remove or unset the "Space" attribute if it is set to "att"
+	if el.Space == "att" {
+		el.Space = ""
+	}
+
+	// Recursively process children
+	for i := 0; i < len(el.Child); i++ {
+		child, ok := el.Child[i].(*etree.Element)
+		if !ok {
+			continue // Skip if this child is not an Element
+		}
+
+		removeAttSpace(child)
+	}
+}
+
+func RemoveChgSpace(el *etree.Element) {
+	if el == nil {
+		return
+	}
+
+	// Remove or unset the "Space" attribute if it is set to "att"
+	if el.Space == "chg" {
+		parts := strings.Split(el.Text(), "|||")
+		if len(parts) > 1 {
+			el.SetText(parts[1])
+		}
+		el.Space = "add"
+	}
+    // Process attributes
+	for i := range el.Attr {
+		// Check if the attribute space is "chg"
+		if el.Attr[i].Space == "chg" {
+			parts := strings.Split(el.Attr[i].Value, "|||")
+			if len(parts) > 1 {
+				el.Attr[i].Value = parts[1]
+			}
+			el.Attr[i].Space = "add"
+		}
+	}
+
+	// Recursively process children
+	for i := 0; i < len(el.Child); i++ {
+		child, ok := el.Child[i].(*etree.Element)
+		if !ok {
+			continue // Skip if this child is not an Element
+		}
+
+		RemoveChgSpace(child)
+	}
 }
 
 func checkElements(oldEl *etree.Element, newDoc *etree.Document) {
@@ -33,8 +139,10 @@ func checkElements(oldEl *etree.Element, newDoc *etree.Document) {
 				oldEl.Space = "chg"
 				oldEl.SetText(fmt.Sprintf("%s|||%s", oldElText, newElText))
 				markParentSpace(oldEl)
-			} else if newElText != "" {
-				oldEl.SetText(newEl.Text())
+			} else if newElText != "" && oldElText == ""{
+				oldEl.Space = "chg"
+				oldEl.SetText("N/A|||"+newEl.Text())
+				markParentSpace(oldEl)
 			}
 		}
 		copyAttributes(newEl, oldEl)
@@ -78,7 +186,7 @@ func addMissingElements(newEl *etree.Element, oldDoc *etree.Document) {
 		parentInOldDoc := oldDoc.FindElement(parentPath)
 		if parentInOldDoc != nil {
 
-			oldEl := etree.NewElement(fmt.Sprintf("new:%s", newEl.Tag))
+			oldEl := etree.NewElement(fmt.Sprintf("add:%s", newEl.Tag))
 			oldEl.SetText(newEl.Text())
 			copyAttributes(newEl, oldEl)
 
@@ -115,7 +223,7 @@ func copyAttributes(oldEl, newEl *etree.Element) {
 			// If same value, do nothing
 		} else {
 			// Attribute does not exist in newEl, add with namespace del:
-			newEl.CreateAttr(fmt.Sprintf("new:%s", oldAttr.Key), oldAttr.Value)
+			newEl.CreateAttr(fmt.Sprintf("add:%s", oldAttr.Key), oldAttr.Value)
 			markParentSpace(newEl)
 		}
 	}

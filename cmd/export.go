@@ -16,22 +16,21 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/mihakralj/opnsense/internal"
 	"github.com/spf13/cobra"
 )
 
-var compact bool
-
 // compareCmd represents the compare command
-var compareCmd = &cobra.Command{
-	Use:   "compare [<original.xml>] [<modified.xml>]",
-	Short: `Compare differences between two XML configuration files`,
-	Long:  `The 'compare' command identifies differences between two XML configuration files for the OPNsense firewall system. When only one filename is provided, it shows the differences between that file and the current 'config.xml'. When no filenames are provided, it compares the current 'config.xml' with 'staging.xml', akin to the 'show' command.`,
-	Example: `  opnsense compare b1.xml b2.xml  Compare differences from 'b1.xml' to 'b2.xml'
-  opnsense compare backup.xml     Compare differences from 'backup.xml' to 'config.xml'
-  opnsense compare                Compare differences from 'config.xml' to 'staging.xml'`,
+var exportCmd = &cobra.Command{
+	Use:   "export [<original.xml>] [<modified.xml>]",
+	Short: `Export differences between two XML configuration files`,
+	Long:  `The 'export' command generates a patch XML between two configuration files for the OPNsense firewall system. When only one filename is provided, it exports differences between that file and the current 'config.xml'. When no filenames are provided, it exports the patch from current 'config.xml' to 'staging.xml'`,
+	Example: `  opnsense export b1.xml b2.xml  Exports XML patch from 'b1.xml' to 'b2.xml'
+  opnsense export backup.xml     Exports XML patch from 'backup.xml' to 'config.xml'
+  opnsense export                Exports XML patch from 'config.xml' to 'staging.xml'`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 		internal.SetFlags(verbose, force, host, configfile, nocolor, depth, xmlFlag, yamlFlag, jsonFlag)
@@ -79,14 +78,14 @@ var compareCmd = &cobra.Command{
 			newdoc = olddoc
 		}
 
-		deltadoc := internal.DiffXML(olddoc, newdoc, !compact)
-		internal.PrintDocument(deltadoc, path)
-
+		deltadoc := internal.DiffXML(olddoc, newdoc, false)
+		internal.RemoveChgSpace(deltadoc.Root())
+		output := internal.ConfigToXML(deltadoc, path)
+		fmt.Print(output)
 	},
 }
 
 func init() {
-	compareCmd.Flags().IntVarP(&depth, "depth", "d", 1, "Specifies number of depth levels of returned tree (default: 1)")
-	compareCmd.Flags().BoolVarP(&compact, "compact", "c", false, "Show only the net changes between configurations")
-	rootCmd.AddCommand(compareCmd)
+
+	rootCmd.AddCommand(exportCmd)
 }

@@ -16,17 +16,27 @@ limitations under the License.
 package internal
 
 import (
-	"strings"
+	"github.com/beevik/etree"
+	"github.com/clbanning/mxj"
 )
 
-// Checkos checks that the target is an OPNsense system
-func Checkos() (string, error) {
-	//check that the target is OPNsense
-	osstr := ExecuteCmd("echo `uname` `opnsense-version -N`", host)
-	osstr = strings.TrimSpace(osstr)
-	if osstr != "FreeBSD OPNsense" {
-		Log(1, "%s is not OPNsense system", osstr)
+func EtreeToJSON(el *etree.Element) (string, error) {
+	doc := etree.NewDocument()
+	doc.SetRoot(el.Copy())
+
+	str, err := doc.WriteToString()
+	if err != nil {
+		return "", err
 	}
-	Log(4, "OPNsense system detected")
-	return osstr, nil
+	mv, err := mxj.NewMapXml([]byte(str)) // parse xml to map
+	if err != nil {
+		return "", err
+	}
+
+	jsonStr, err := mv.JsonIndent("", "  ") // convert map to json
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonStr), nil
 }

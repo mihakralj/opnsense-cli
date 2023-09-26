@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 MihaK mihak09@gmail.com
+Copyright © 2023 Miha miha.kralj@outlook.com
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,39 +32,31 @@ var deleteFlag bool = false
 // setCmd represents the set command
 var setCmd = &cobra.Command{
 	Use:   "set <xpath> <value> <(att=value)>",
-	Short: "Set a value or attribute for a node in 'staging.xml'",
-	Long: `The 'set' command modifies a specific node in the 'staging.xml' file by assigning a new value or attribute. These changes are staged and will not take effect until the 'commit' command is executed to move 'staging.xml' to 'config.xml'. You can discard any changes using the 'discard' command.
+	Short: "Set a value or attribute for a element in 'staging.xml'",
+	Long: `The 'set' command modifies a specific element in the 'staging.xml' file by assigning a new value or attribute. These changes are staged and will not take effect until the 'commit' command is executed to move 'staging.xml' to 'config.xml'. You can discard any changes using the 'discard' command.
 
-The XPath parameter offers node targeting, enabling you to navigate to the exact node to modify in the XML structure.`,
-	Example: `  opnsense set interfaces/wan/if igb0      Set the 'interfaces/wan/if' node to 'igb0'
+The XPath parameter offers node targeting, enabling you to navigate to the exact element to modify in the XML structure.`,
+	Example: `  opnsense set interfaces/wan/if igb0      Set the 'interfaces/wan/if' element to 'igb0'
   opnsense set system/hostname myrouter    Assign 'myrouter' as the hostname in 'staging.xml'
-  opnsense set interfaces "(version=2.0)"  Assign an attribute to the node
-  opnsense set system/hostname -d          Remove the 'system/hostname' node and all its contents`,
+  opnsense set interfaces "(version=2.0)"  Assign an attribute to the element
+  opnsense set system/hostname -d          Remove the 'system/hostname' element and all its contents`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-
-		internal.Checkos()
-
-		configdoc := internal.LoadXMLFile(configfile, host)
-		if configdoc == nil {
-			internal.Log(1,"failed to get data from %s",configfile)
-		}
-		internal.EnumerateListElements(configdoc.Root())
-
-		stagingdoc := internal.LoadXMLFile(stagingfile, host)
-		if stagingdoc == nil {
-			stagingdoc = configdoc
-		}
-		internal.EnumerateListElements(stagingdoc.Root())
-
-		if stagingdoc.Root() == nil {
-			stagingdoc = configdoc
-		}
 
 		if len(args) == 0 {
 			internal.Log(1, "XPath not provided")
 			return
 		}
+
+		internal.Checkos()
+		configdoc := internal.LoadXMLFile(configfile, host, false)
+		internal.EnumerateListElements(configdoc.Root())
+
+		stagingdoc := internal.LoadXMLFile(stagingfile, host, true)
+		if stagingdoc == nil {
+			stagingdoc = configdoc
+		}
+		internal.EnumerateListElements(stagingdoc.Root())
 
 		path := strings.Trim(args[0], "/")
 		if !strings.HasPrefix(path, "opnsense/") {
@@ -79,7 +71,6 @@ The XPath parameter offers node targeting, enabling you to navigate to the exact
 		}
 
 		var attribute, value string
-
 		if len(args) == 2 {
 			if isAttribute(args[1]) {
 				attribute = escapeXML(args[1])
@@ -108,7 +99,6 @@ The XPath parameter offers node targeting, enabling you to navigate to the exact
 		}
 
 		element := stagingdoc.FindElement(path)
-
 		if !deleteFlag {
 			if element == nil {
 				element = stagingdoc.Root()
@@ -132,10 +122,11 @@ The XPath parameter offers node targeting, enabling you to navigate to the exact
 							}
 							part = fmt.Sprintf("%s.%d", part, maxIndex+1)
 						}
-						element.CreateElement(part)
+
+						newEl := element.CreateElement(part)
+						fmt.Printf("Created a new element %s:\n\n", strings.TrimPrefix(newEl.GetPath(), "/"))
 					}
 					element = element.SelectElement(part)
-					fmt.Println(part, element.GetPath())
 				}
 				path = element.GetPath()
 			}
@@ -146,6 +137,8 @@ The XPath parameter offers node targeting, enabling you to navigate to the exact
 				}
 				element.SetText(value)
 				path = element.GetPath()
+				fmt.Printf(`Set value "%s" of element %s:`+"\n\n", value, strings.TrimPrefix(path, "/"))
+
 			}
 			if attribute != "" {
 				attribute = strings.Trim(attribute, "()") // remove parentheses
@@ -154,6 +147,8 @@ The XPath parameter offers node targeting, enabling you to navigate to the exact
 					key := fixXMLName(parts[0])
 					val := escapeXML(parts[1])
 					element.CreateAttr(key, val)
+					fmt.Printf("Set an attribute \"(%s=%s)\" of element %s:\n\n", key, val, path)
+
 				} else {
 					internal.Log(1, "Invalid attribute format")
 				}
@@ -163,6 +158,7 @@ The XPath parameter offers node targeting, enabling you to navigate to the exact
 				parent := element.Parent()
 				if parent != nil {
 					parent.RemoveChild(element)
+					fmt.Printf("Deleted element %s:\n\n", path)
 					path = parent.GetPath()
 				} else {
 					internal.Log(1, "Cannot delete the root element")
@@ -170,6 +166,7 @@ The XPath parameter offers node targeting, enabling you to navigate to the exact
 			}
 			if value != "" {
 				element.SetText("")
+				fmt.Printf("Deleted value of element %s:\n\n", path)
 				path = element.GetPath()
 			}
 			if attribute != "" {
@@ -178,33 +175,30 @@ The XPath parameter offers node targeting, enabling you to navigate to the exact
 				if len(parts) == 2 {
 					key := fixXMLName(parts[0])
 					element.RemoveAttr(key)
-					fmt.Println("deleted attribute", key)
+					fmt.Printf("Deleted an attribute (%s) of element %s:\n\n", key, path)
 
 				} else {
 					internal.Log(1, "Invalid attribute format")
 				}
 			}
 		}
+
 		deltadoc := internal.DiffXML(configdoc, stagingdoc, true)
+		//internal.FullDepth()
 
-		internal.ReverseEnumerateListElements(configdoc.Root())
-		internal.ReverseEnumerateListElements(stagingdoc.Root())
-		re := regexp.MustCompile(`\.(\d+)`)
-		path = re.ReplaceAllString(path, "[$1]")
 		internal.PrintDocument(deltadoc, path)
-
 		internal.SaveXMLFile(stagingfile, stagingdoc, host, true)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(setCmd)
-	setCmd.Flags().BoolVarP(&deleteFlag, "delete", "d", false, "Delete a node")
+	setCmd.Flags().BoolVarP(&deleteFlag, "delete", "d", false, "Delete an element")
 
 }
 
 func isAttribute(s string) bool {
-	re := regexp.MustCompile(`^\([^=]+=[^=]+\)$`)
+	re := regexp.MustCompile(`^\([^=]+(=[^=]*)?\)$`)
 	return re.MatchString(s)
 }
 

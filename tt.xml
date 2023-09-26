@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opnsense xmlns:add="add" xmlns:del="del">
+  <add:theme>dracula</add:theme>
+  <laggs add:version="2.0"/>
+  <wireless>
+    <add:clone>wifi</add:clone>
+  </wireless>
+  <gateways add:attr="new"/>
+  <virtualip del:version=""/>
+  <ifgroups add:laggs="2.0" del:version="1.0.0"/>
+  <del:openvpn/>
+  <add:newnode>value</add:newnode>
+</opnsense>

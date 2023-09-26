@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 MihaK mihak09@gmail.com
+Copyright © 2023 Miha miha.kralj@outlook.com
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,36 +30,42 @@ var commitCmd = &cobra.Command{
 	Long: `The 'commit' command finalizes the staged changes made to the 'staging.xml' file, making them the active configuration for the OPNsense firewall system. This operation is the last step in a sequence that typically involves the 'set' and optionally 'discard' commands. The 'commit' action creates a backup of the active 'config.xml', moves 'staging.xml' to 'config.xml', and reloads the 'configd' service.
 	`,
 
-Example: `  opnsense commit          Commit the changes in 'staging.xml' to become the active 'config.xml'
+	Example: `  opnsense commit          Commit the changes in 'staging.xml' to become the active 'config.xml'
   opnsense commit --force  Commit the changes without requiring interactive confirmation.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// check if staging.xml exists
 		internal.Checkos()
-		bash := `if [ -f "` + stagingfile + `" ]; then echo "exists"; fi`
+		bash := `test -f "` + stagingfile + `" && echo "exists" || echo "missing"`
 		fileexists := internal.ExecuteCmd(bash, host)
 		if strings.TrimSpace(fileexists) != "exists" {
-			internal.Log(1, "no staging.xml detected - nothing to commit.")
+			fmt.Println("no staging.xml detected - nothing to commit.")
+			return
 		}
-		internal.Log(2,"modifying "+configfile)
+		bash = `diff -q "` + configfile + `" "` + stagingfile + `" >& /dev/null && echo "same" || echo "diff"`
+		filesame := internal.ExecuteCmd(bash, host)
+		if strings.TrimSpace(filesame) != "diff" {
+			fmt.Println("staging.xml and config.xml are the same - nothing to commit.")
+		}
+
+		configdoc := internal.LoadXMLFile(configfile, host, false)
+		stagingdoc := internal.LoadXMLFile(stagingfile, host, false)
+
+		deltadoc := internal.DiffXML(configdoc, stagingdoc, false)
+		fmt.Println("\nChanges to be commited:")
+		internal.PrintDocument(deltadoc, "opnsense")
+
+		internal.Log(2, "commiting %s to %s", stagingfile, configfile)
 
 		// copy config.xml to /conf/backup dir
-		backupname := generateBackupFilename()
-		bash = `sudo cp -f ` + configfile + ` /conf/backup/` + backupname + ` && sudo mv -f /conf/staging.xml `+configfile
-		//internal.ExecuteCmd(bash, host)
-		fmt.Println(bash)
+		backupname := internal.GenerateBackupFilename()
+		bash = `sudo cp -f ` + configfile + ` /conf/backup/` + backupname + ` && sudo mv -f /conf/staging.xml ` + configfile
+		internal.ExecuteCmd(bash, host)
 
-		bash = `if [ -f "` + configfile + `" ]; then echo "ok"; else echo "error"; fi`
-		fileexists = internal.ExecuteCmd(bash, host)
-		if fileexists == "ok" {
-			bash = ``
-		} else {
-			//error
-			bash = ``
-		}
-		// config reload - full or partial?
+		fmt.Println("time to reload OPNSense!")
 
-		fmt.Println(fileexists)
+		//TODO: run php /usr/local/etc/rc.reload_all
+
 	},
 }
 

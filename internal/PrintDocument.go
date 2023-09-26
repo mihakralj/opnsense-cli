@@ -16,17 +16,22 @@ limitations under the License.
 package internal
 
 import (
-	"strings"
+	"fmt"
+
+	"github.com/beevik/etree"
 )
 
-// Checkos checks that the target is an OPNsense system
-func Checkos() (string, error) {
-	//check that the target is OPNsense
-	osstr := ExecuteCmd("echo `uname` `opnsense-version -N`", host)
-	osstr = strings.TrimSpace(osstr)
-	if osstr != "FreeBSD OPNsense" {
-		Log(1, "%s is not OPNsense system", osstr)
+func PrintDocument(doc *etree.Document, path string) {
+	var output string
+	switch {
+	case xmlFlag:
+		output = ConfigToXML(doc, path)
+	case jsonFlag:
+		output = ConfigToJSON(doc, path)
+	case yamlFlag:
+		output = ConfigToYAML(doc, path)
+	default:
+		output = ConfigToTTY(doc, path)
 	}
-	Log(4, "OPNsense system detected")
-	return osstr, nil
+	fmt.Println(output)
 }

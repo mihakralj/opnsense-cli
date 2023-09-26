@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 MihaK mihak09@gmail.com
+Copyright © 2023 Miha miha.kralj@outlook.com
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -51,16 +51,10 @@ var showCmd = &cobra.Command{
 
 		internal.Checkos()
 
-		configdoc := internal.LoadXMLFile(configfile, host)
-		if configdoc.Root() == nil {
-			internal.Log(1, "failed to get data from %s", configfile)
-		}
-		stagingdoc := internal.LoadXMLFile(stagingfile, host)
-
+		configdoc := internal.LoadXMLFile(configfile, host, false)
+		stagingdoc := internal.LoadXMLFile(stagingfile, host, true)
 		if stagingdoc == nil {
 			stagingdoc = configdoc
-			internal.Log(4, "failed to get data from %s, using %s", stagingfile, configfile)
-
 		}
 
 		deltadoc := internal.DiffXML(configdoc, stagingdoc, true)

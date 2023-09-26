@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 MihaK mihak09@gmail.com
+Copyright © 2023 Miha miha.kralj@outlook.com
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -60,17 +60,27 @@ var restoreCmd = &cobra.Command{
 		}
 		filename = "/conf/backup/"+filename
 		internal.Checkos()
-		configdoc := internal.LoadXMLFile(filename, host)
-		if configdoc == nil {
-			internal.Log(1,"failed to get data from %s",filename)
+
+		configdoc := internal.LoadXMLFile(configfile, host, false)
+		saveddoc := internal.LoadXMLFile(filename, host, false)
+
+		depthset := cmd.LocalFlags().Lookup("depth")
+		if depthset != nil && !depthset.Changed {
+		internal.FullDepth()
 		}
-		internal.Log(2, "Load %s into /conf/staging.xml.",filename)
-		internal.SaveXMLFile(stagingfile, configdoc, host, true)
-		fmt.Printf("The file %s has been loaded into /conf/staging.xml.\n", filename)
+
+		deltadoc := internal.DiffXML(configdoc, saveddoc, false)
+
+		internal.PrintDocument(deltadoc, "opnsense")
+
+		internal.Log(2, "Stage %s into %s",filename, stagingfile)
+		internal.SaveXMLFile(stagingfile, saveddoc, host, true)
+		fmt.Printf("The file %s has been staged into %s.\n", filename, stagingfile)
 	},
 }
 
 func init() {
+	restoreCmd.Flags().IntVarP(&depth, "depth", "d", 1, "Specifies number of depth levels of returned tree (default: 1)")
 	rootCmd.AddCommand(restoreCmd)
 
 }

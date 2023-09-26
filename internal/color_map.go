@@ -15,18 +15,32 @@ limitations under the License.
 */
 package internal
 
-import (
-	"strings"
-)
+var c = map[string]string{
+	"tag": "\033[0m",
+	"txt": "\033[33m",
+	"atr": "\033[33m",
 
-// Checkos checks that the target is an OPNsense system
-func Checkos() (string, error) {
-	//check that the target is OPNsense
-	osstr := ExecuteCmd("echo `uname` `opnsense-version -N`", host)
-	osstr = strings.TrimSpace(osstr)
-	if osstr != "FreeBSD OPNsense" {
-		Log(1, "%s is not OPNsense system", osstr)
-	}
-	Log(4, "OPNsense system detected")
-	return osstr, nil
+	"chg": "\033[36m",
+	"add": "\033[32m",
+	"del": "\033[31m\033[9m",
+	"red": "\033[31m",
+	"grn": "\033[32m",
+	"ele": "\033[36m",
+
+	"yel": "\033[33m",
+	"blu": "\033[34m",
+	"mgn": "\033[35m",
+	"cyn": "\033[36m",
+	"wht": "\033[37m",
+	"gry": "\033[90m",
+
+	"ita": "\033[3m", // italics
+	"bld": "\033[1m", // bold
+	"stk": "\033[9m", // strikethroough
+	"und": "\033[4m",
+	"rev": "\033[7m", // reverse colors
+
+	"ell": "\u2026",
+	"arw": " \u2192 ",
+	"nil": "\033[0m",
 }
