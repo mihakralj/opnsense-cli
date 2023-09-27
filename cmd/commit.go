@@ -55,16 +55,43 @@ var commitCmd = &cobra.Command{
 		fmt.Println("\nChanges to be commited:")
 		internal.PrintDocument(deltadoc, "opnsense")
 
-		internal.Log(2, "commiting %s to %s", stagingfile, configfile)
+		internal.Log(2, "commiting %s to %s and reloading all services", stagingfile, configfile)
 
 		// copy config.xml to /conf/backup dir
 		backupname := internal.GenerateBackupFilename()
 		bash = `sudo cp -f ` + configfile + ` /conf/backup/` + backupname + ` && sudo mv -f /conf/staging.xml ` + configfile
 		internal.ExecuteCmd(bash, host)
 
-		fmt.Println("time to reload OPNSense!")
+		include := "php -r \"require_once('/usr/local/etc/inc/config.inc'); require_once('/usr/local/etc/inc/interfaces.inc'); require_once('/usr/local/etc/inc/filter.inc'); require_once('/usr/local/etc/inc/auth.inc'); require_once('/usr/local/etc/inc/rrd.inc'); require_once('/usr/local/etc/inc/util.inc'); require_once('/usr/local/etc/inc/system.inc'); require_once('/usr/local/etc/inc/interfaces.inc'); "
 
-		//TODO: run php /usr/local/etc/rc.reload_all
+		var result string
+
+		result = internal.ExecuteCmd(include+"system_firmware_configure(true); \"", host)
+		fmt.Println(result)
+		result = internal.ExecuteCmd(include+"system_trust_configure(true); \"", host)
+		fmt.Println(result)
+		result = internal.ExecuteCmd(include+"system_login_configure(true); \"", host)
+		fmt.Println(result)
+		result = internal.ExecuteCmd(include+"system_cron_configure(true); \"", host)
+		fmt.Println(result)
+		result = internal.ExecuteCmd(include+"system_timezone_configure(true); \"", host)
+		fmt.Println(result)
+		result = internal.ExecuteCmd(include+"system_hostname_configure(true); \"", host)
+		fmt.Println(result)
+		result = internal.ExecuteCmd(include+"system_resolver_configure(true); \"", host)
+		fmt.Println(result)
+		result = internal.ExecuteCmd(include+"interfaces_configure(true); \"", host)
+		fmt.Println(result)
+		result = internal.ExecuteCmd(include+"system_routing_configure(true); \"", host)
+		fmt.Println(result)
+		result = internal.ExecuteCmd(include+"rrd_configure(true); \"", host)
+		fmt.Println(result)
+		result = internal.ExecuteCmd(include+"filter_configure(true); \"", host)
+		fmt.Println(result)
+		result = internal.ExecuteCmd(include+"plugins_configure('vpn', true); \"", host)
+		fmt.Println(result)
+		result = internal.ExecuteCmd(include+"plugins_configure('local', true); \"", host)
+		fmt.Println(result)
 
 	},
 }

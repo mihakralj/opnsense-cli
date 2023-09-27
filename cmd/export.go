@@ -78,6 +78,8 @@ var exportCmd = &cobra.Command{
 			newdoc = olddoc
 		}
 
+//TODO: add support for xml lists
+
 		deltadoc := internal.DiffXML(olddoc, newdoc, false)
 		internal.RemoveChgSpace(deltadoc.Root())
 		output := internal.ConfigToXML(deltadoc, path)

@@ -58,17 +58,23 @@ The XPath parameter offers node targeting, enabling you to navigate to the exact
 		}
 		internal.EnumerateListElements(stagingdoc.Root())
 
+		//TODO: add support for xml lists
+
 		path := strings.Trim(args[0], "/")
 		if !strings.HasPrefix(path, "opnsense/") {
 			path = "opnsense/" + path
 		}
-		path = strings.ReplaceAll(path, "[", ".")
-		path = strings.ReplaceAll(path, "]", "")
-
 		if matched, _ := regexp.MatchString(`\[0\]`, path); matched {
 			internal.Log(1, "XPath indexing of elements starts with 1, not 0")
 			return
 		}
+
+		//find if path is refers to the list
+
+		//path = strings.ReplaceAll(path, "[", ".")
+		//path = strings.ReplaceAll(path, "]", "")
+
+		fmt.Println(path)
 
 		var attribute, value string
 		if len(args) == 2 {
@@ -103,6 +109,7 @@ The XPath parameter offers node targeting, enabling you to navigate to the exact
 			if element == nil {
 				element = stagingdoc.Root()
 				parts := strings.Split(path, "/")
+				
 				for i, part := range parts {
 					part = fixXMLName(part)
 					if i == 0 && part == "opnsense" {

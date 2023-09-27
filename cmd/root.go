@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	Version     string = "0.13.0"
+	Version     string = "0.14.0"
 	verbose     int
 	force       bool
 	host        string
@@ -84,8 +84,8 @@ To streamline remote operations, add your private key to the SSH agent using 'ss
 }
 
 func Execute() {
-	rootCmd.CompletionOptions.DisableDefaultCmd = true
-	rootCmd.CompletionOptions.DisableNoDescFlag = true
+	//rootCmd.CompletionOptions.DisableDefaultCmd = true
+	//rootCmd.CompletionOptions.DisableNoDescFlag = true
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Whoops. There was an error while executing CLI '%s'", err)
 		os.Exit(1)
