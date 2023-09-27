@@ -17,6 +17,7 @@ package internal
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/beevik/etree"
@@ -32,13 +33,14 @@ func DiffXML(oldDoc, newDoc *etree.Document, fulltree bool) *etree.Document {
 	addMissingElements(newDoc.Root(), diffDoc)
 	checkElements(diffDoc.Root(), newDoc)
 
-	ReverseEnumerateListElements(diffDoc.Root())
-	ReverseEnumerateListElements(newDoc.Root())
-
 	if !fulltree {
 		removeNodesWithoutSpace(diffDoc.Root())
 		removeAttSpace(diffDoc.Root())
 	}
+
+	//ReverseEnumerateListElements(diffDoc.Root())
+	//ReverseEnumerateListElements(newDoc.Root())
+
 	return diffDoc
 }
 
@@ -104,7 +106,7 @@ func RemoveChgSpace(el *etree.Element) {
 		}
 		el.Space = "add"
 	}
-    // Process attributes
+	// Process attributes
 	for i := range el.Attr {
 		// Check if the attribute space is "chg"
 		if el.Attr[i].Space == "chg" {
@@ -139,9 +141,9 @@ func checkElements(oldEl *etree.Element, newDoc *etree.Document) {
 				oldEl.Space = "chg"
 				oldEl.SetText(fmt.Sprintf("%s|||%s", oldElText, newElText))
 				markParentSpace(oldEl)
-			} else if newElText != "" && oldElText == ""{
+			} else if newElText != "" && oldElText == "" {
 				oldEl.Space = "chg"
-				oldEl.SetText("N/A|||"+newEl.Text())
+				oldEl.SetText("N/A|||" + newEl.Text())
 				markParentSpace(oldEl)
 			}
 		}
@@ -289,6 +291,16 @@ func ReverseEnumerateListElements(el *etree.Element) {
 		// Recursively call the function on the child
 		ReverseEnumerateListElements(child)
 	}
+}
+
+func EnumeratePath(path string) string {
+	re := regexp.MustCompile(`\[(\d+)\]`)
+	return re.ReplaceAllString(path, ".$1")
+}
+
+func ReverseEnumeratePath(path string) string {
+	re := regexp.MustCompile(`\.(\d+)`)
+	return re.ReplaceAllString(path, "[$1]")
 }
 
 func getComments(el *etree.Element) []string {

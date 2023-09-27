@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<opnsense>
-  <virtualip del:version="1.0.0"/>
-  <vlans del:version="1.0.0"/>
-  <staticroutes del:version="1.0.0"/>
-  <laggs del:version="1.0.0"/>
-  <ifgroups del:version="1.0.0"/>
-</opnsense>

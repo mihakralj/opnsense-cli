@@ -62,13 +62,12 @@ The XPath parameter offers node targeting, enabling you to navigate to the exact
 		if !strings.HasPrefix(path, "opnsense/") {
 			path = "opnsense/" + path
 		}
-		path = strings.ReplaceAll(path, "[", ".")
-		path = strings.ReplaceAll(path, "]", "")
-
 		if matched, _ := regexp.MatchString(`\[0\]`, path); matched {
 			internal.Log(1, "XPath indexing of elements starts with 1, not 0")
 			return
 		}
+		// convert list targeting in path from item[1] to item.1
+		path = internal.EnumeratePath(path)
 
 		var attribute, value string
 		if len(args) == 2 {
@@ -98,16 +97,19 @@ The XPath parameter offers node targeting, enabling you to navigate to the exact
 			}
 		}
 
+		// stagingdoc is converted to enumeratedXML, path is converted to enumerated path
 		element := stagingdoc.FindElement(path)
 		if !deleteFlag {
 			if element == nil {
 				element = stagingdoc.Root()
 				parts := strings.Split(path, "/")
+
 				for i, part := range parts {
 					part = fixXMLName(part)
 					if i == 0 && part == "opnsense" {
 						continue
 					}
+
 					if element.SelectElement(part) == nil {
 						if element.SelectElement(part+".1") != nil {
 							var maxIndex int
@@ -183,8 +185,12 @@ The XPath parameter offers node targeting, enabling you to navigate to the exact
 			}
 		}
 
+		path = internal.ReverseEnumeratePath(path)
+
+		internal.ReverseEnumerateListElements(configdoc.Root())
+		internal.ReverseEnumerateListElements(stagingdoc.Root())
+
 		deltadoc := internal.DiffXML(configdoc, stagingdoc, true)
-		//internal.FullDepth()
 
 		internal.PrintDocument(deltadoc, path)
 		internal.SaveXMLFile(stagingfile, stagingdoc, host, true)

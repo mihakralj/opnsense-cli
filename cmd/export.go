@@ -75,11 +75,12 @@ var exportCmd = &cobra.Command{
 		olddoc := internal.LoadXMLFile(oldconfig, host, false)
 		newdoc := internal.LoadXMLFile(newconfig, host, true)
 		if newdoc == nil {
-			newdoc = olddoc
+			newdoc = olddoc.Copy()
 		}
 
 		deltadoc := internal.DiffXML(olddoc, newdoc, false)
 		internal.RemoveChgSpace(deltadoc.Root())
+
 		output := internal.ConfigToXML(deltadoc, path)
 		fmt.Print(output)
 	},

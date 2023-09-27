@@ -17,7 +17,6 @@ package internal
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/beevik/etree"
@@ -77,11 +76,14 @@ func EtreeToTTY(el *etree.Element, level int, indent int) string {
 	}
 
 	// Replace ".n" with "[n]" in the tag name
-	match, _ := regexp.MatchString(`\.\d+$`, el.Tag)
-	if match {
-		lastIndex := strings.LastIndex(el.Tag, ".")
-		el.Tag = el.Tag[:lastIndex] + "[" + el.Tag[lastIndex+1:] + "]"
-	}
+	el.Tag = ReverseEnumeratePath(el.Tag)
+	/*
+		match, _ := regexp.MatchString(`\.\d+$`, el.Tag)
+		if match {
+			lastIndex := strings.LastIndex(el.Tag, ".")
+			el.Tag = el.Tag[:lastIndex] + "[" + el.Tag[lastIndex+1:] + "]"
+		}
+	*/
 
 	// Build the content string
 	if len(el.ChildElements()) > 0 {

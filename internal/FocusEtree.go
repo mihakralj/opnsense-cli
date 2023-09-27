@@ -27,8 +27,12 @@ import (
 func FocusEtree(doc *etree.Document, path string) *etree.Element {
 	path = strings.TrimPrefix(path, "/")
 
+	path = EnumeratePath(path)
+	EnumerateListElements(doc.Root())
+
 	// Find all elements that match the path
 	foundElements := doc.FindElements(path)
+
 	if len(foundElements) == 0 {
 		Log(1, "Xpath element \"%s\" does not exist", path)
 		return nil
@@ -71,7 +75,7 @@ func FocusEtree(doc *etree.Document, path string) *etree.Element {
 	if space != "" {
 		// Set the space of the focused element to "att"
 		focused.Space = "att"
-		Log(5, "element maked with attention flag: %s", focused.GetPath())
 	}
+
 	return focused
 }

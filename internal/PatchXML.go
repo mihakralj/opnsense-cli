@@ -21,38 +21,44 @@ import (
 	"github.com/beevik/etree"
 )
 
+// PatchElements processes patch instructions in an XML element to modify a target XML document.
 func PatchElements(patchEl *etree.Element, newDoc *etree.Document) {
+	EnumerateListElements(newDoc.Root())
+	// Check for nil inputs and log if detected
 	if patchEl == nil {
 		return
 	}
 
-	// Process elements
-	switch patchEl.Space {
-	case "add", "del":
+	// Process the patch element based on its namespace (either "add" or "del")
+	if patchEl.Space == "add" || patchEl.Space == "del" {
 		InjectElementAtPath(patchEl, newDoc)
 	}
 
-	// Process attributes
+	// Process patch attributes in the same way
 	for _, attr := range patchEl.Attr {
-		switch attr.Space {
-		case "add", "del":
+		if attr.Space == "add" || attr.Space == "del" {
 			InjectElementAtPath(patchEl, newDoc)
 		}
 	}
-	// Recursively process child elements
+
+	// Recursively handle child elements
 	for _, child := range patchEl.ChildElements() {
 		PatchElements(child, newDoc)
 	}
 }
 
+// InjectElementAtPath either adds or deletes elements and attributes from the target document
+// based on the patch instruction.
 func InjectElementAtPath(el *etree.Element, doc *etree.Document) {
-
+	// Try to find the element in the target document
 	match := doc.FindElement(el.GetPath())
 
+	// If no matching element found, create necessary path
 	if match == nil {
 		current := doc.Root()
 		parts := strings.Split(el.GetPath(), "/")
-		// No match found in doc, we need to create the new path
+
+		// Traverse or create the path in the target document
 		for i := 2; i < len(parts); i++ {
 			match = current.SelectElement(parts[i])
 			if match == nil {
@@ -60,26 +66,27 @@ func InjectElementAtPath(el *etree.Element, doc *etree.Document) {
 			}
 			current = match
 		}
+
+		// If adding, set the text content of the element
 		if el.Space == "add" {
 			match.SetText(el.Text())
 		}
 	} else {
+		// If element is found and is being added, set its text content
 		if el.Space == "add" {
 			match.SetText(el.Text())
-		}
-		if el.Space == "del" {
+		} else if el.Space == "del" {
+			// If element is being deleted, remove it from its parent
 			match.Parent().RemoveChild(match)
 		}
 	}
 
+	// Apply attribute patches
 	for _, attr := range el.Attr {
 		if attr.Space == "add" {
 			match.CreateAttr(attr.Key, attr.Value)
-		}
-		if attr.Space == "del" {
+		} else if attr.Space == "del" {
 			match.RemoveAttr(attr.Key)
 		}
-
 	}
-
 }
