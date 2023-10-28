@@ -56,7 +56,7 @@ jobs:
           chmod +x ./opnsense-linux
           cp ./opnsense-linux opnsense/usr/local/bin/opnsense
           echo -e "Package: opnsense-cli\nVersion: ${VERSION}\nSection: base\nPriority: optional\nArchitecture: amd64\nMaintainer: Miha Kralj <miha.kralj@outlook.com>\nDescription: opnsense is a command-line utility for managing, configuring, and monitoring OPNsense firewall systems. It facilitates non-GUI administration, both directly in the shell and remotely via an SSH tunnel. All interactions with OPNsense utilize the same mechanisms as the Web GUI, including staged modifications of config.xml and execution of available configd commands." > opnsense/DEBIAN/control
-          dpkg-deb --build opnsense
+          dpkg-deb -Zxz --build opnsense
         shell: bash
 
       - name: Upload all artifacts
