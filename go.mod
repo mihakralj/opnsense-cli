@@ -8,8 +8,8 @@ require (
 	github.com/clbanning/mxj v1.8.4
 	github.com/pkg/sftp v1.13.6
 	github.com/spf13/cobra v1.7.0
-	golang.org/x/crypto v0.11.0
-	golang.org/x/term v0.10.0
+	golang.org/x/crypto v0.17.0
+	golang.org/x/term v0.15.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -18,6 +18,6 @@ require (
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/sys v0.10.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/tools v0.11.1 // indirect
 )
